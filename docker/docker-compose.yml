@@ -1,0 +1,32 @@
+services:
+  db:
+    image: postgres:latest
+    container_name: facil_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: facil_db
+    ports:
+      - "1234:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  go:
+    container_name: go_backend
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8080:8081"
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=admin
+      - DB_NAME=facil_db
+      - APP_PORT=8081
+
+volumes:
+  db_data:

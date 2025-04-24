@@ -1,0 +1,46 @@
+[
+  {
+    "displayName": "Jlenin",
+    "email": "jlenin25mv@gmail.com",
+    "id": "dc95dd04",
+    "password": "admin",
+    "photoURL": "/assets/images/avatars/brian-hughe.jpg",
+    "role": "admin",
+    "settings": {},
+    "shortcuts": [""],
+    "status": true
+  },
+  {
+    "brand": {
+      "id": 2,
+      "name": "Samsung",
+      "description": "Multinational electronics company based in South Korea",
+      "logo_url": "https://example.com/logos/samsung.png",
+      "website_url": "https://www.samsung.com"
+    },
+    "brand_id": 0,
+    "categories": [],
+    "comparedPrice": 0,
+    "depth": "3",
+    "description": "sin descripción",
+    "extraShippingFee": 0,
+    "featuredImageId": "",
+    "handle": "",
+    "height": "23",
+    "id": 0,
+    "image": "",
+    "images": [],
+    "name": "Producto testeado 1",
+    "price": "",
+    "priceTaxExcl": 0,
+    "priceTaxIncl": 0,
+    "quantity": 0,
+    "sku": "1231w",
+    "status": 1,
+    "tags": [],
+    "taxRate": 0,
+    "total": "",
+    "weight": "21",
+    "width": "132"
+  }
+]

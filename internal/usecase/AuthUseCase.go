@@ -1,0 +1,175 @@
+package usecase
+
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"time"
+
+	"github.com/Jlenin5/facil_backend/internal/domain"
+	"github.com/Jlenin5/facil_backend/internal/repository"
+	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/crypto/bcrypt"
+)
+
+type AuthUseCase interface {
+	SignIn(email, password string) (*domain.LoginResponse, error)
+	ValidateRefreshToken(refreshToken string) (*domain.Users, error)
+}
+
+type DauthUseCase struct {
+	authRepo      repository.AuthRepository
+	jwtKey        []byte
+	accessExp     time.Duration
+}
+
+func NewAuthUseCase(authRepo repository.AuthRepository, jwtKey []byte) *DauthUseCase {
+	return &DauthUseCase{
+		authRepo:  authRepo,
+		jwtKey:   jwtKey,
+		accessExp: 24 * time.Hour,
+	}
+}
+
+func (uc *DauthUseCase) SignIn(email, password string) (*domain.LoginResponse, error) {
+	user, err := uc.authRepo.FindUserByTypeChar("email", email)
+	if err != nil || user == nil {
+		return nil, errors.New("usuario no encontrado")
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+		return nil, errors.New("credenciales inválidas")
+	}
+
+	// Transformar usuario antes de generar el token
+	transformedUser, err := transformUser(user)
+	if err != nil {
+		return nil, err
+	}
+
+	// Generar el token con todos los datos del usuario
+	token, err := uc.generateToken(transformedUser)
+	if err != nil {
+		return nil, errors.New("no se pudo generar el token")
+	}
+
+	return &domain.LoginResponse{
+		User:  transformedUser,
+		Token: token,
+	}, nil
+}
+
+func (uc *DauthUseCase) ValidateRefreshToken(refreshToken string) (map[string]interface{}, error) {
+	claims := &jwt.MapClaims{}
+	token, err := jwt.ParseWithClaims(refreshToken, claims, func(token *jwt.Token) (interface{}, error) {
+		return uc.jwtKey, nil
+	})
+	if err != nil || !token.Valid {
+		return nil, errors.New("refresh token inválido o expirado")
+	}
+
+	userId, ok := (*claims)["sub"].(float64)
+	if !ok {
+		return nil, errors.New("el token no contiene un Id de usuario válido")
+	}
+
+	user, err := uc.authRepo.FindUserByTypeChar("id", fmt.Sprintf("%d", int(userId)))
+	if err != nil || user == nil {
+		return nil, errors.New("usuario no encontrado")
+	}
+
+	// Transformar usuario
+	transformedUser, err := transformUser(user)
+	if err != nil {
+		return nil, err
+	}
+
+	return transformedUser, nil
+}
+
+func (uc *DauthUseCase) generateToken(userData map[string]interface{}) (string, error) {
+	claims := jwt.MapClaims{
+		"sub":  userData["id"], // Incluir el user_id en el claim "sub"
+		"user": userData,       // Incluir todos los datos del usuario en el claim "user"
+		"exp":  time.Now().Add(uc.accessExp).Unix(),
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString(uc.jwtKey)
+}
+
+// Función auxiliar para transformar un usuario en la estructura deseada
+func transformUser(user *domain.Users) (map[string]interface{}, error) {
+	settings, err := parseJSON(user.Settings)
+	if err != nil {
+		return nil, err
+	}
+
+	shortcuts, err := parseJSON(user.Shortcuts)
+	if err != nil {
+		return nil, err
+	}
+
+	// Transformar company
+	var company map[string]interface{}
+	if user.Company != nil {
+		company = map[string]interface{}{
+			"id":              user.Company.Id,
+			"name":            user.Company.Name,
+		}
+	}
+	
+	// Transformar employee
+	var employee map[string]interface{}
+	if user.Employee != nil {
+		employee = map[string]interface{}{
+			"id":              user.Employee.Id,
+			"first_name":      user.Employee.First_Name,
+			"second_name":     user.Employee.Second_Name,
+			"third_name":      user.Employee.Third_Name,
+			"surname":         user.Employee.Surname,
+			"second_surname":  user.Employee.Second_Surname,
+			"document_number": user.Employee.Document_Number,
+			"warehouse_id":    user.Employee.Warehouse_Id,
+			"status":          user.Employee.Status,
+		}
+	}
+
+	// Transformar role
+	var role map[string]interface{}
+	if user.Role != nil {
+		role = map[string]interface{}{
+			"id":          user.Role.Id,
+			"name":        user.Role.Name,
+			"description": user.Role.Description,
+		}
+	}
+
+	// Estructura transformada
+	return map[string]interface{}{
+		"id":          user.Id,
+		"company_id":  user.Company_Id,
+		"company":     company,
+		"role_id":     user.Role_Id,
+		"role":        role,
+		"username":    user.Username,
+		"employee_id": user.Employee_Id,
+		"employee":    employee,
+		"avatar":      user.Avatar,
+		"email":       user.Email,
+		"subscription":user.Subscription,
+		"settings":    settings,
+		"shortcuts":   shortcuts,
+		"status":      user.Status,
+	}, nil
+}
+
+func parseJSON(data interface{}) (interface{}, error) {
+	if bytes, ok := data.([]uint8); ok {
+		var result interface{}
+		if err := json.Unmarshal(bytes, &result); err != nil {
+			return nil, fmt.Errorf("error al decodificar JSON: %v", err)
+		}
+		return result, nil
+	}
+	return nil, fmt.Errorf("tipo de datos no compatible")
+}
