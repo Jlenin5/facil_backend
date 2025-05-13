@@ -628,7 +628,7 @@ CREATE TABLE stock_control (
     current_stock INT NOT NULL CHECK (current_stock >= 0),
     current_booking INT NOT NULL CHECK (current_booking >= 0),
     min_stock INT CHECK (min_stock >= 0),
-    max_stock INT CHECK (max_stock >= min_stock),
+    max_stock INT CHECK (max_stock > min_stock),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP DEFAULT NULL
