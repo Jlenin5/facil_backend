@@ -28,7 +28,7 @@ type Products struct {
 	Rating           float64               `db:"rating" json:"rating"`
 	ExtraShippingFee float64               `db:"extra_shipping_fee" json:"extraShippingFee"`
 	Status           uint8                 `db:"status" json:"status"`
-	Stock            []Stock               `json:"stock"`
+	Stock            int                   `json:"stock"`
 	Booking          []Booking             `json:"booking"`
 	Created_at       time.Time             `db:"created_at" json:"-"`
 	Updated_at       time.Time             `db:"updated_at" json:"-"`
