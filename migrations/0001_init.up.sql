@@ -486,7 +486,6 @@ CREATE TABLE purchase_orders (
     approval_date TIMESTAMP,
     created_by INTEGER NOT NULL,
     approved_by INTEGER,
-    date_approved DATE DEFAULT NULL,
     migrate_purchase BIT(1) NOT NULL DEFAULT B'0', -- Usar BIT(1) con valor predeterminado de 0
     notes TEXT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
