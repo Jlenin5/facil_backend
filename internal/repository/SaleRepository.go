@@ -235,6 +235,21 @@ func (r *SaleRepository) UpdateSale(sale *domain.Sales, details []domain.SaleDet
 				return err
 			}
 		}
+
+		// Descontar stock si la venta está pagada
+		if sale.Sale_Status == "paid" {
+			stockUpdateQuery := `
+				UPDATE stock_control
+				SET current_stock = current_stock - $1, updated_at = NOW()
+				WHERE product_id = $2 AND warehouse_id = $3
+			`
+			_, err := r.db.Exec(stockUpdateQuery, detail.Quantity, detail.Product_Id, sale.Warehouse_Id)
+			if err != nil {
+				fmt.Printf("Error actualizando stock_control para producto %v: %v\n", detail.Product_Id, err)
+				tx.Rollback()
+				return err
+			}
+		}
 	}
 
 	err = tx.Commit()
