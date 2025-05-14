@@ -35,10 +35,16 @@ func (r *StockControlRepository) CreateStockControl(brand *domain.StockControl) 
 	return nil
 }
 
-// Obtener todas las marcas
+// Obtener todos los controles de stock
 func (r *StockControlRepository) GetAllStockControl() ([]domain.StockControl, error) {
 	var stockControl []domain.StockControl
-	query := "SELECT id, warehouse_id, product_id, current_stock, current_booking, min_stock, max_stock FROM stock_control WHERE deleted_at IS NULL"
+	query := `
+		SELECT
+			sc.id, sc.warehouse_id, sc.product_id, sc.current_stock, sc.current_booking, sc.min_stock, sc.max_stock
+		FROM stock_control sc
+		WHERE sc.deleted_at IS NULL
+		ORDER BY sc.id DESC
+	`
 	err := r.db.Select(&stockControl, query)
 	if err != nil {
 		fmt.Printf("Error ejecutando la consulta: %v\n", err)
@@ -120,12 +126,12 @@ func (r *StockControlRepository) GetStockControlById(id int) (*domain.StockContr
 func (r *StockControlRepository) UpdateStockControl(stockControl *domain.StockControl) error {
 	query := `
 		UPDATE stock_control SET 
-			name = $1, description = $2, logo_url = $3, website_url = $4, status = $5, updated_at = NOW()
-		WHERE id = $6 AND deleted_at IS NULL
+			warehouse_id = $1, product_id = $2, current_stock = $3, current_booking = $4, min_stock = $5, max_stock = $6, updated_at = NOW()
+		WHERE id = $7 AND deleted_at IS NULL
 	`
-	_, err := r.db.Exec(query, stockControl.Warehouse_Id, stockControl.Product_Id, stockControl.Current_Stock, stockControl.Min_Stock, stockControl.Max_Stock, stockControl.Id)
+	_, err := r.db.Exec(query, stockControl.Warehouse_Id, stockControl.Product_Id, stockControl.Current_Stock, stockControl.Current_Booking, stockControl.Min_Stock, stockControl.Max_Stock, stockControl.Id)
 	if err != nil {
-		fmt.Printf("Error actualizando la marca con Id %d: %v\n", stockControl.Id, err)
+		fmt.Printf("Error actualizando control de stock con Id %d: %v\n", stockControl.Id, err)
 		return err
 	}
 	return nil
