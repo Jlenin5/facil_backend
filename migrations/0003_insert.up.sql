@@ -363,18 +363,18 @@ INSERT INTO sale_order_details (
 ('A Walk Amongst Friends - Canvas Print', 3, 1, 5, B'0', NULL, 10.24, 51.20, 51.20);
 
 -- Insertar datos en la tabla purchase_orders
-INSERT INTO purchase_orders (reference, description, warehouse_id, supplier_id, supplier_document, exchange_rate, discount, user_id, issue_date, tax, subtotal, total, order_status, date_approved, migrate_purchase)
+INSERT INTO purchase_orders (reference, warehouse_id, supplier_id, currency_id, exchange_rate, discount, issue_date, tax, subtotal, total, order_status, created_by, date_approved, migrate_purchase)
 VALUES
-('OC-00001', 'Compra de lienzos', 1, 1, '12345678', 3.75, 5.00, 1, '2024-07-01 10:00:00', 10.00, 180.00, 198.00, 'paid', '2024-07-02', B'0'),
-('OC-00002', 'Materiales para enmarcado', 2, 2, '87654321', 3.70, 0.00, 1, '2024-07-03 15:30:00', 8.00, 240.00, 259.20, 'approved', '2024-07-04', B'0'),
-('OC-00003', 'Impresión en alta calidad', 3, 3, '20481234', 3.80, 10.00, 1, '2024-07-05 12:45:00', 9.50, 500.00, 547.50, 'paid', '2024-07-06', B'1'),
-('OC-00004', 'Tintas y papeles premium', 4, 4, '23456789', 3.85, 3.00, 1, '2024-07-07 09:20:00', 7.00, 300.00, 321.00, 'unpaid', NULL, B'0'),
-('OC-00005', 'Envío de stock adicional', 5, 5, '34567890', 3.78, 5.00, 1, '2024-07-09 14:10:00', 6.50, 420.00, 447.30, 'approved', '2024-07-10', B'0'),
-('OC-00006', 'Compra de nuevos diseños', 6, 6, '20551234', 3.79, 8.00, 1, '2024-07-11 17:50:00', 8.20, 350.00, 378.70, 'paid', '2024-07-12', B'1'),
-('OC-00007', 'Refill de materiales', 7, 7, '45678901', 3.76, 2.00, 1, '2024-07-13 11:05:00', 7.80, 275.00, 296.45, 'paid', '2024-07-14', B'0'),
-('OC-00008', 'Compra de bastidores', 8, 8, '56789012', 3.77, 0.00, 1, '2024-07-15 13:25:00', 8.50, 600.00, 648.00, 'unpaid', NULL, B'0'),
-('OC-00009', 'Adquisición de marcos', 9, 9, '20661234', 3.74, 4.00, 1, '2024-07-17 16:40:00', 9.00, 480.00, 523.20, 'approved', '2024-07-18', B'1'),
-('OC-00010', 'Compras generales', 2, 10, '67890123', 3.80, 6.00, 1, '2024-07-19 10:10:00', 7.50, 550.00, 591.25, 'paid', '2024-07-20', B'0');
+('OC-00001', 1, 1, 6, 3.75, 5.00, '2024-07-01 10:00:00', 10.00, 180.00, 198.00, 'canceled', 1, '2024-07-02', B'0'),
+('OC-00002', 2, 2, 6, 3.70, 0.00, '2024-07-03 15:30:00', 8.00, 240.00, 259.20, 'approved', 1, '2024-07-04', B'0'),
+('OC-00003', 3, 3, 6, 3.80, 10.00, '2024-07-05 12:45:00', 9.50, 500.00, 547.50, 'partial', 1, '2024-07-06', B'1'),
+('OC-00004', 4, 4, 6, 3.85, 3.00, '2024-07-07 09:20:00', 7.00, 300.00, 321.00, 'rejected', 1, NULL, B'0'),
+('OC-00005', 5, 5, 6, 3.78, 5.00, '2024-07-09 14:10:00', 6.50, 420.00, 447.30, 'approved', 1, '2024-07-10', B'0'),
+('OC-00006', 6, 6, 6, 3.79, 8.00, '2024-07-11 17:50:00', 8.20, 350.00, 378.70, 'partial', 1, '2024-07-12', B'1'),
+('OC-00007', 7, 7, 6, 3.76, 2.00, '2024-07-13 11:05:00', 7.80, 275.00, 296.45, 'received', 1, '2024-07-14', B'0'),
+('OC-00008', 8, 8, 6, 3.77, 0.00, '2024-07-15 13:25:00', 8.50, 600.00, 648.00, 'rejected', 1, NULL, B'0'),
+('OC-00009', 9, 9, 6, 3.74, 4.00, '2024-07-17 16:40:00', 9.00, 480.00, 523.20, 'approved', 1, '2024-07-18', B'1'),
+('OC-00010', 2, 10, 6, 3.80, 6.00, '2024-07-19 10:10:00', 7.50, 550.00, 591.25, 'received', 1, '2024-07-20', B'0');
 
 -- Insertar datos en la tabla purchase_order_details
 INSERT INTO purchase_order_details (purchase_order_id, product_id, quantity, price, total)
