@@ -206,45 +206,15 @@ func (r *ProductRepository) GetAllProducts() ([]domain.Products, error) {
 		products[i].Images = images
 
 		// Obtener stock del producto
-		var stock []domain.Stock
-		err = r.db.Select(&stock, `
+		var stock int
+		err = r.db.Get(&stock, `
 			SELECT 
-				warehouse_id,
-				SUM(total) AS total
-			FROM (
-				-- Stock de compras confirmadas (pagadas)
-				SELECT 
-					po.warehouse_id AS warehouse_id,
-					SUM(pod.quantity) AS total
-				FROM 
-					purchase_orders po
-				JOIN 
-					purchase_order_details pod ON po.id = pod.purchase_order_id
-				WHERE 
-					po.order_status = 'paid' AND pod.product_id = $1
-				GROUP BY 
-					po.warehouse_id
-
-				UNION ALL
-
-				-- Stock descontado por ventas confirmadas (pagadas)
-				SELECT 
-					so.warehouse_id AS warehouse_id,
-					-SUM(sod.quantity) AS total  -- Se usa negativo para restar del stock
-				FROM 
-					sale_orders so
-				JOIN 
-					sale_order_details sod ON so.id = sod.sale_order_id
-				WHERE 
-					so.order_status = 'paid' AND sod.product_id = $1
-				GROUP BY 
-					so.warehouse_id
-			) AS combined
-			GROUP BY 
-				warehouse_id
+				COALESCE(SUM(current_stock), 0) 
+			FROM stock_control
+			WHERE product_id = $1
 		`, products[i].Id)
 		if err != nil {
-			fmt.Printf("Error obteniendo stock para el producto %d: %v\n", products[i].Id, err)
+			fmt.Printf("Error obteniendo total de stock para producto %d: %v\n", products[i].Id, err)
 			return nil, err
 		}
 		products[i].Stock = stock
@@ -343,45 +313,15 @@ func (r *ProductRepository) GetProductById(productId int) (*domain.Products, err
 	product.Images = images
 
 	// Obtener stock del producto
-	var stock []domain.Stock
-	err = r.db.Select(&stock, `
+	var stock int
+	err = r.db.Get(&stock, `
 		SELECT 
-			warehouse_id,
-			SUM(total) AS total
-		FROM (
-			-- Stock de compras confirmadas (pagadas)
-			SELECT 
-				po.warehouse_id AS warehouse_id,
-				SUM(pod.quantity) AS total
-			FROM 
-				purchase_orders po
-			JOIN 
-				purchase_order_details pod ON po.id = pod.purchase_order_id
-			WHERE 
-				po.order_status = 'paid' AND pod.product_id = $1
-			GROUP BY 
-				po.warehouse_id
-
-			UNION ALL
-
-			-- Stock descontado por ventas confirmadas (pagadas)
-			SELECT 
-				so.warehouse_id AS warehouse_id,
-				-SUM(sod.quantity) AS total  -- Se usa negativo para restar del stock
-			FROM 
-				sale_orders so
-			JOIN 
-				sale_order_details sod ON so.id = sod.sale_order_id
-			WHERE 
-				so.order_status = 'paid' AND sod.product_id = $1
-			GROUP BY 
-				so.warehouse_id
-		) AS combined
-		GROUP BY 
-			warehouse_id
-	`, productId)
+			COALESCE(SUM(current_stock), 0) 
+		FROM stock_control
+		WHERE product_id = $1
+	`, product.Id)
 	if err != nil {
-		fmt.Printf("Error obteniendo stock para el producto %d: %v\n", productId, err)
+		fmt.Printf("Error obteniendo total de stock para producto %d: %v\n", product.Id, err)
 		return nil, err
 	}
 	product.Stock = stock

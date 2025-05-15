@@ -78,7 +78,7 @@ ALTER TABLE purchases ADD CONSTRAINT fk_purchases_purchase_order FOREIGN KEY (pu
 ALTER TABLE purchases ADD CONSTRAINT fk_purchases_payment_method FOREIGN KEY (payment_method_id) REFERENCES payment_methods(id) ON DELETE CASCADE;
 ALTER TABLE purchases ADD CONSTRAINT fk_purchases_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE;
 
-ALTER TABLE purchase_details ADD CONSTRAINT fk_purchase_details_purchase_order FOREIGN KEY (purchase_id) REFERENCES purchase_orders(id) ON DELETE CASCADE;
+ALTER TABLE purchase_details ADD CONSTRAINT fk_purchase_details_purchase FOREIGN KEY (purchase_id) REFERENCES purchases(id) ON DELETE CASCADE;
 ALTER TABLE purchase_details ADD CONSTRAINT fk_purchase_details_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE;
 
 ALTER TABLE purchase_order_payments ADD CONSTRAINT fk_purchase_order_payments_payment_method FOREIGN KEY (payment_method_id) REFERENCES payment_methods(id) ON DELETE CASCADE;

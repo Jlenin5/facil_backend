@@ -93,7 +93,7 @@ INSERT INTO warehouses (branch_office_id, name, description, address, status) VA
 
 -- Insertar datos en la tabla suscripciones
 INSERT INTO subscriptions (company_id, plan_id, end_date, status) VALUES
-(1, 1, '2025-03-01 15:04:41.474091', 'active');
+(1, 1, '2026-03-01 15:04:41.474091', 'active');
 
 -- Insertar datos en la tabla work_areas
 INSERT INTO work_areas (name, description) VALUES
@@ -377,22 +377,65 @@ VALUES
 ('OC-00010', 2, 10, 6, 3.80, 6.00, '2024-07-19 10:10:00', 7.50, 550.00, 591.25, 'received', 1, B'0');
 
 -- Insertar datos en la tabla purchase_order_details
-INSERT INTO purchase_order_details (purchase_order_id, product_id, quantity, price, total)
+INSERT INTO purchase_order_details (purchase_order_id, product_id, quantity, price, subtotal, total)
 VALUES
-(1, 1, 5, 20.00, 100.00),
-(1, 2, 3, 25.00, 75.00),
-(2, 3, 4, 30.00, 120.00),
-(2, 4, 2, 28.00, 56.00),
-(3, 5, 5, 22.00, 110.00),
-(3, 6, 3, 26.00, 78.00),
-(4, 7, 4, 23.00, 92.00),
-(4, 8, 2, 32.00, 64.00),
-(5, 9, 3, 9.31, 27.93),
-(6, 1, 6, 20.00, 120.00),
-(7, 2, 5, 25.00, 125.00),
-(8, 3, 7, 30.00, 210.00),
-(9, 4, 4, 28.00, 112.00),
-(10, 5, 6, 22.00, 132.00);
+(1, 1, 5, 20.00, 100.00, 100.00),
+(1, 2, 3, 25.00, 75.00, 75.00),
+(2, 3, 4, 30.00, 120.00, 120.00),
+(2, 4, 2, 28.00, 56.00, 56.00),
+(3, 5, 5, 22.00, 110.00, 110.00),
+(3, 6, 3, 26.00, 78.00, 78.00),
+(4, 7, 4, 23.00, 92.00, 92.00),
+(4, 8, 2, 32.00, 64.00, 64.00),
+(5, 9, 3, 9.31, 27.93, 27.93),
+(6, 1, 6, 20.00, 120.00, 120.00),
+(7, 2, 5, 25.00, 125.00, 125.00),
+(8, 3, 7, 30.00, 210.00, 210.00),
+(9, 4, 4, 28.00, 112.00, 112.00),
+(10, 5, 6, 22.00, 132.00, 132.00);
+
+-- Insertar datos en la tabla purchases
+INSERT INTO purchases (
+    reference, invoice_number, supplier_id, warehouse_id, currency_id, exchange_rate, 
+    purchase_status, purchase_order_id, issue_date, received_date, payment_date, 
+    discount, subtotal, tax, total, total_paid, change, payment_method_id, 
+    created_by, document_attachment, notes
+)
+VALUES
+('CP-00001', 'INV-001', 3, 3, 6, 3.80, 'partial', 3, '2024-07-05', '2024-07-06', NULL, 10.00, 500.00, 9.50, 547.50, 0.00, 0.00, 1, 1, NULL, NULL),
+('CP-00002', 'INV-002', 6, 6, 6, 3.79, 'partial', 6, '2024-07-11', '2024-07-12', NULL, 8.00, 350.00, 8.20, 378.70, 0.00, 0.00, 1, 1, NULL, NULL),
+('CP-00003', 'INV-003', 7, 7, 6, 3.76, 'received', 7, '2024-07-13', '2024-07-14', '2024-07-15', 2.00, 275.00, 7.80, 296.45, 296.45, 0.00, 2, 1, NULL, NULL),
+('CP-00004', 'INV-004', 9, 9, 6, 3.74, 'received', 9, '2024-07-17', '2024-07-18', '2024-07-19', 4.00, 480.00, 9.00, 523.20, 523.20, 0.00, 2, 1, NULL, NULL),
+('CP-00005', 'INV-005', 10, 2, 6, 3.80, 'received', 10, '2024-07-19', '2024-07-20', '2024-07-21', 6.00, 550.00, 7.50, 591.25, 591.25, 0.00, 1, 1, NULL, NULL),
+('CP-00006', 'INV-006', 2, 2, 6, 3.70, 'received', 2, '2024-07-03', '2024-07-04', '2024-07-05', 0.00, 240.00, 8.00, 259.20, 259.20, 0.00, 2, 1, NULL, NULL),
+('CP-00007', 'INV-007', 1, 1, 6, 3.75, 'received', 1, '2024-07-01', '2024-07-02', '2024-07-03', 5.00, 180.00, 10.00, 198.00, 198.00, 0.00, 2, 1, NULL, NULL),
+('CP-00008', 'INV-008', 4, 4, 6, 3.85, 'canceled', 4, '2024-07-07', NULL, NULL, 3.00, 300.00, 7.00, 321.00, 0.00, 0.00, NULL, 1, NULL, NULL),
+('CP-00009', 'INV-009', 8, 8, 6, 3.77, 'canceled', 8, '2024-07-15', NULL, NULL, 0.00, 600.00, 8.50, 648.00, 0.00, 0.00, NULL, 1, NULL, NULL),
+('CP-00010', 'INV-010', 5, 5, 6, 3.78, 'draft', 5, '2024-07-09', NULL, NULL, 5.00, 420.00, 6.50, 447.30, 0.00, 0.00, NULL, 1, NULL, NULL),
+('CP-00011', 'INV-011', 2, 2, 6, 3.70, 'paid', 2, '2024-07-03', '2024-07-04', '2024-07-05', 0.00, 240.00, 8.00, 259.20, 259.20, 0.00, 2, 1, NULL, 'Pago adelantado'),
+('CP-00012', 'INV-012', 6, 6, 6, 3.79, 'unpaid', 6, '2024-07-11', NULL, NULL, 8.00, 350.00, 8.20, 378.70, 0.00, 0.00, 1, 1, NULL, 'Pendiente de abono');
+
+-- Insertar datos en la tabla purchase_details
+INSERT INTO purchase_details (purchase_id, product_id, quantity, price, discount, subtotal, total)
+VALUES
+(1, 5, 5, 22.00, 0.00, 110.00, 110.00),
+(1, 6, 3, 26.00, 0.00, 78.00, 78.00),
+(2, 1, 6, 20.00, 0.00, 120.00, 120.00),
+(3, 2, 5, 25.00, 0.00, 125.00, 125.00),
+(4, 4, 4, 28.00, 0.00, 112.00, 112.00),
+(5, 5, 6, 22.00, 0.00, 132.00, 132.00),
+(6, 3, 4, 30.00, 0.00, 120.00, 120.00),
+(6, 4, 2, 28.00, 0.00, 56.00, 56.00),
+(7, 1, 5, 20.00, 0.00, 100.00, 100.00),
+(7, 2, 3, 25.00, 0.00, 75.00, 75.00),
+(8, 7, 4, 23.00, 0.00, 92.00, 92.00),
+(8, 8, 2, 32.00, 0.00, 64.00, 64.00),
+(9, 3, 7, 30.00, 0.00, 210.00, 210.00),
+(10, 9, 3, 9.31, 0.00, 27.93, 27.93),
+(11, 3, 4, 30.00, 0.00, 120.00, 120.00),
+(11, 4, 2, 28.00, 0.00, 56.00, 56.00),
+(12, 1, 6, 20.00, 0.00, 120.00, 120.00),
+(12, 6, 2, 24.00, 0.00, 48.00, 48.00); 
 
 -- Insertar datos en la tabla purchase_order_payments
 INSERT INTO purchase_order_payments (payment_method_id, purchase_order_id, payment_date, amount, currency_id, exchange_rate, reference_number, status, notes) VALUES

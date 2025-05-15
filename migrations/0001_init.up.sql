@@ -499,15 +499,16 @@ CREATE TABLE purchase_order_details (
     purchase_order_id INT,
     product_id INT,
     quantity  DECIMAL(12,2) NOT NULL,
-    price DECIMAL(12,2) NOT NULL CHECK (price >= 0),
     discount  DECIMAL(12,2) DEFAULT 0,
-    tax_rate DECIMAL(5, 2),
+    price DECIMAL(12,2) NOT NULL CHECK (price >= 0),
+    subtotal DECIMAL(5, 2) NOT NULL,
     total  DECIMAL(12,2) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
+-- Purchases Table
 CREATE TABLE purchases (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     reference VARCHAR(8) NOT NULL UNIQUE,
@@ -536,14 +537,15 @@ CREATE TABLE purchases (
     deleted_at TIMESTAMP
 );
 
+-- Purchase Details Table
 CREATE TABLE purchase_details (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     purchase_id INT,
     product_id INT,
     quantity  DECIMAL(12,2) NOT NULL,
-    price DECIMAL(12,2) NOT NULL CHECK (price >= 0),
     discount  DECIMAL(12,2) DEFAULT 0,
-    tax_rate DECIMAL(5, 2),
+    price DECIMAL(12,2) NOT NULL CHECK (price >= 0),
+    subtotal DECIMAL(10,2) NOT NULL,
     total  DECIMAL(12,2) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

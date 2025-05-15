@@ -55,6 +55,13 @@ func (nt *NullTime) Scan(value interface{}) error {
 	return nil
 }
 
+func (nt NullTime) Value() (driver.Value, error) {
+	if !nt.Valid || nt.Time == nil {
+		return nil, nil
+	}
+	return *nt.Time, nil
+}
+
 // NullString sin dependencia de database/sql
 type NullString struct {
 	String *string `json:"string,omitempty"`
