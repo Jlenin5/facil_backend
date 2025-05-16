@@ -18,41 +18,49 @@ func NewPurchaseRepository(db *sqlx.DB) *PurchaseRepository {
 }
 
 // Crear una compra junto con sus detalles
-func (r *PurchaseRepository) CreatePurchase(sale *domain.Purchases, details []domain.PurchaseDetails) error {
+func (r *PurchaseRepository) CreatePurchase(purchase *domain.Purchases, details []domain.PurchaseDetails) error {
 	tx, err := r.db.Beginx()
 	if err != nil {
 		fmt.Printf("Error iniciando transacción: %v\n", err)
 		return err
 	}
 
-	// Descomponer la estructura sale en sus campos individuales
-	saleMap := map[string]interface{}{
-		"reference":      sale.Reference,
-		"warehouse_id":       sale.Warehouse_Id,
-		"currency_id":        sale.Currency_Id,
-		"issue_date":         sale.Issue_Date,
-		"exchange_rate":      sale.Exchange_Rate,
-		"discount":           sale.Discount,
-		"subtotal":           sale.Subtotal,
-		"total":              sale.Total,
-		"total_paid":         sale.Total_Paid,
-		"change":             sale.Change,
-		"sale_status":        sale.Purchase_Status,
-		"payment_method_id":  sale.Payment_Method_Id,
-		"sale_order_id":      sale.Purchase_Order_Id,
+	// Descomponer la estructura purchase en sus campos individuales
+	purchaseMap := map[string]interface{}{
+		"reference":           purchase.Reference,
+		"invoice_number":      purchase.Invoice_Number,
+		"supplier_id":         purchase.Supplier_Id,
+		"warehouse_id":        purchase.Warehouse_Id,
+		"currency_id":         purchase.Currency_Id,
+		"exchange_rate":       purchase.Exchange_Rate,
+		"purchase_status":     purchase.Purchase_Status,
+		"purchase_order_id":   purchase.Purchase_Order_Id,
+		"issue_date":          purchase.Issue_Date,
+		"received_date":       purchase.Received_Date,
+		"payment_date":        purchase.Payment_Date,
+		"discount":            purchase.Discount,
+		"subtotal":            purchase.Subtotal,
+		"tax":                 purchase.Tax,
+		"total":               purchase.Total,
+		"total_paid":          purchase.Total_Paid,
+		"change":              purchase.Change,
+		"payment_method_id":   purchase.Payment_Method_Id,
+		"created_by":          purchase.Created_By,
+		"document_attachment": purchase.Document_Attachment,
+		"notes":               purchase.Notes,
 	}
 
 	// Insertar la compra
-	saleQuery := `
+	purchaseQuery := `
 		INSERT INTO purchases (
-			reference, invoice_number, number, bill, warehouse_id, customer_id, currency_id, user_id, issue_date, exchange_rate, discount, subtotal, total, total_paid, change, sale_status, payment_method_id, sale_order_id, tax_identification, retention, perception
+			reference, invoice_number, supplier_id, warehouse_id, currency_id, exchange_rate, purchase_status, purchase_order_id, issue_date, received_date, payment_date, discount, subtotal, tax, total, total_paid, change, payment_method_id, created_by, document_attachment, notes
 		) VALUES (
-			:reference, :invoice_number, :number, :bill, :warehouse_id, :customer_id, :currency_id, :user_id, :issue_date, :exchange_rate, :discount, :subtotal, :total, :total_paid, :change, :sale_status, :payment_method_id, :sale_order_id, :tax_identification, :retention, :perception
+			:reference, :invoice_number, :supplier_id, :warehouse_id, :currency_id, :exchange_rate, :purchase_status, :purchase_order_id, :issue_date, :received_date, :payment_date, :discount, :subtotal, :tax, :total, :total_paid, :change, :payment_method_id, :created_by, :document_attachment, :notes
 		) RETURNING id
 	`
 
-	var saleId int
-	stmt, err := tx.PrepareNamed(saleQuery) // Preparar la consulta nombrada
+	var purchaseId int
+	stmt, err := tx.PrepareNamed(purchaseQuery) // Preparar la consulta nombrada
 	if err != nil {
 		tx.Rollback()
 		fmt.Printf("Error preparando la consulta: %v\n", err)
@@ -60,7 +68,7 @@ func (r *PurchaseRepository) CreatePurchase(sale *domain.Purchases, details []do
 	}
 	defer stmt.Close()
 
-	err = stmt.Get(&saleId, saleMap) // Ejecutar la consulta y obtener el ID
+	err = stmt.Get(&purchaseId, purchaseMap) // Ejecutar la consulta y obtener el ID
 	if err != nil {
 		tx.Rollback()
 		fmt.Printf("Error insertando la compra: %v\n", err)
@@ -69,12 +77,12 @@ func (r *PurchaseRepository) CreatePurchase(sale *domain.Purchases, details []do
 
 	// Insertar los detalles de la compra
 	for _, detail := range details {
-		detail.Purchase_Id = saleId
+		detail.Purchase_Id = purchaseId
 		detailQuery := `
-			INSERT INTO sale_details (
-				product_name, sale_id, product_id, quantity, price, discount_method, discount, subtotal, total
+			INSERT INTO purchase_details (
+				purchase_id, product_id, quantity, discount, price, subtotal, total
 			) VALUES (
-				:product_name, :sale_id, :product_id, :quantity, :price, :discount_method, :discount, :subtotal, :total
+				:purchase_id, :product_id, :quantity, :discount, :price, :subtotal, :total
 			)
 		`
 		_, err = tx.NamedExec(detailQuery, detail)
@@ -82,6 +90,20 @@ func (r *PurchaseRepository) CreatePurchase(sale *domain.Purchases, details []do
 			fmt.Printf("Error creando el detalle de la compra: %v\n", err)
 			tx.Rollback()
 			return err
+		}
+
+		if purchase.Purchase_Status == "received" {
+			stockUpdateQuery := `
+				UPDATE stock_control
+				SET current_stock = current_stock + $1, updated_at = NOW()
+				WHERE product_id = $2 AND warehouse_id = $3
+			`
+			_, err := tx.Exec(stockUpdateQuery, detail.Quantity, detail.Product_Id, purchase.Warehouse_Id)
+			if err != nil {
+				fmt.Printf("Error actualizando stock_control para producto %v: %v\n", detail.Product_Id, err)
+				tx.Rollback()
+				return err
+			}
 		}
 	}
 
@@ -113,18 +135,18 @@ func (r *PurchaseRepository) GetAllPurchases() ([]domain.Purchases, error) {
 }
 
 // Obtener una compra por ID junto con sus detalles
-func (r *PurchaseRepository) GetPurchaseById(saleId int) (*domain.Purchases, error) {
-	var sale domain.Purchases
+func (r *PurchaseRepository) GetPurchaseById(purchaseId int) (*domain.Purchases, error) {
+	var purchase domain.Purchases
 	query := querySelectPurchase("p.id = $1 AND p.deleted_at IS NULL")
-	if err := r.db.Get(&sale, query, saleId); err != nil {
-		return nil, fmt.Errorf("error obteniendo compra con ID %d: %w", saleId, err)
+	if err := r.db.Get(&purchase, query, purchaseId); err != nil {
+		return nil, fmt.Errorf("error obteniendo compra con ID %d: %w", purchaseId, err)
 	}
 
-	if err := r.fetchPurchaseDetails(&sale); err != nil {
-		return nil, fmt.Errorf("error obteniendo detalles de la compra %d: %w", saleId, err)
+	if err := r.fetchPurchaseDetails(&purchase); err != nil {
+		return nil, fmt.Errorf("error obteniendo detalles de la compra %d: %w", purchaseId, err)
 	}
 
-	return &sale, nil
+	return &purchase, nil
 }
 
 // Obtener una compra por IDs
@@ -142,7 +164,7 @@ func (r *PurchaseRepository) GetPurchasesByIds(ids []int) ([]domain.Purchases, e
 }
 
 // Actualizar una compra
-func (r *PurchaseRepository) UpdatePurchase(sale *domain.Purchases, details []domain.PurchaseDetails) error {
+func (r *PurchaseRepository) UpdatePurchase(purchase *domain.Purchases, details []domain.PurchaseDetails) error {
 	tx, err := r.db.Beginx()
 	if err != nil {
 		fmt.Printf("Error iniciando transacción: %v\n", err)
@@ -150,34 +172,34 @@ func (r *PurchaseRepository) UpdatePurchase(sale *domain.Purchases, details []do
 	}
 
 	// Actualizar la compra
-	saleQuery := `
+	purchaseQuery := `
 		UPDATE purchases
 		SET
-			reference = :reference,
-			invoice_number = :invoice_number,
-			number = :number,
-			bill = :bill,
-			warehouse_id = :warehouse_id,
-			customer_id = :customer_id,
-			currency_id = :currency_id,
-			user_id = :user_id,
-			issue_date = :issue_date,
-			exchange_rate = :exchange_rate,
-			discount = :discount,
-			subtotal = :subtotal,
-			total = :total,
-			total_paid = :total_paid,
-			change = :change,
-			sale_status = :sale_status,
-			payment_method_id = :payment_method_id,
-			sale_order_id = :sale_order_id,
-			tax_identification = :tax_identification,
-			retention = :retention,
-			perception = :perception,
+			reference =           :reference,
+			invoice_number =      :invoice_number,
+			supplier_id =         :supplier_id,
+			warehouse_id =        :warehouse_id,
+			currency_id =         :currency_id,
+			exchange_rate =       :exchange_rate,
+			purchase_status =     :purchase_status,
+			purchase_order_id =   :purchase_order_id,
+			issue_date =          :issue_date,
+			received_date =       :received_date,
+			payment_date =        :payment_date,
+			discount =            :discount,
+			subtotal =            :subtotal,
+			tax =                 :tax,
+			total =               :total,
+			total_paid =          :total_paid,
+			change =              :change,
+			payment_method_id =   :payment_method_id,
+			created_by =          :created_by,
+			document_attachment = :document_attachment,
+			notes =               :notes,
 			updated_at = NOW()
 		WHERE id = :id
 	`
-	_, err = tx.NamedExec(saleQuery, sale)
+	_, err = tx.NamedExec(purchaseQuery, purchase)
 	if err != nil {
 		fmt.Printf("Error actualizando la compra: %v\n", err)
 		tx.Rollback()
@@ -190,12 +212,12 @@ func (r *PurchaseRepository) UpdatePurchase(sale *domain.Purchases, details []do
 		longitud := len(cadena)
 		if longitud == 13 {
 			// Insertar nuevo detalle
-			detail.Purchase_Id = sale.Id
+			detail.Purchase_Id = purchase.Id
 			detailQuery := `
-				INSERT INTO sale_details (
-					product_name, sale_id, product_id, quantity, price, discount_method, discount, subtotal, total
+				INSERT INTO purchase_details (
+					purchase_id, product_id, quantity, discount, price, subtotal, total
 				) VALUES (
-					:product_name, :sale_id, :product_id, :quantity, :price, :discount_method, :discount, :subtotal, :total
+					:purchase_id, :product_id, :quantity, :discount, :price, :subtotal, :total
 				)
 			`
 			_, err = tx.NamedExec(detailQuery, detail)
@@ -207,14 +229,13 @@ func (r *PurchaseRepository) UpdatePurchase(sale *domain.Purchases, details []do
 		} else {
 			// Actualizar detalle existente
 			detailQuery := `
-				UPDATE sale_details
+				UPDATE purchase_details
 				SET
-					product_name = :product_name,
+					purchase_id = :purchase_id,
 					product_id = :product_id,
 					quantity = :quantity,
-					price = :price,
-					discount_method = :discount_method,
 					discount = :discount,
+					price = :price,
 					subtotal = :subtotal,
 					total = :total,
 					updated_at = NOW()
@@ -223,6 +244,20 @@ func (r *PurchaseRepository) UpdatePurchase(sale *domain.Purchases, details []do
 			_, err = tx.NamedExec(detailQuery, detail)
 			if err != nil {
 				fmt.Printf("Error actualizando detalle: %v\n", err)
+				tx.Rollback()
+				return err
+			}
+		}
+
+		if purchase.Purchase_Status == "received" {
+			stockUpdateQuery := `
+				UPDATE stock_control
+				SET current_stock = current_stock + $1, updated_at = NOW()
+				WHERE product_id = $2 AND warehouse_id = $3
+			`
+			_, err := tx.Exec(stockUpdateQuery, detail.Quantity, detail.Product_Id, purchase.Warehouse_Id)
+			if err != nil {
+				fmt.Printf("Error actualizando stock_control para producto %v: %v\n", detail.Product_Id, err)
 				tx.Rollback()
 				return err
 			}
@@ -236,43 +271,6 @@ func (r *PurchaseRepository) UpdatePurchase(sale *domain.Purchases, details []do
 	}
 
 	return nil
-}
-
-// Obtener compra por documento
-func (r *PurchaseRepository) GetPurchaseByBill(bill string) (*domain.Purchases, error) {
-	var sale domain.Purchases
-
-	// Escribir la consulta SQL manualmente
-	query := querySelectPurchase("p.bill = $1 AND p.deleted_at IS NULL")
-
-	// Ejecutar la consulta y escanear el resultado en la estructura sale
-	err := r.db.Get(&sale, query, bill)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := r.fetchPurchaseDetails(&sale); err != nil {
-		return nil, fmt.Errorf("error obteniendo detalles de la compra %d: %w", sale.Id, err)
-	}
-
-	return &sale, nil
-}
-
-// Obtener la última referencia registrada
-func (r *PurchaseRepository) GetLastPurchaseBill(reference string) (string, error) {
-	var lastReference string
-
-	query := querySelectPurchase("p.reference=$1 ORDER BY p.id DESC LIMIT 1")
-	err := r.db.Get(&lastReference, query, reference)
-	if err != nil {
-		// Si no hay registros, devuelve cadena vacía
-		if err == sql.ErrNoRows {
-			return "", nil
-		}
-		return "", err
-	}
-
-	return lastReference, nil
 }
 
 // Obtener detalles de una compra
@@ -299,8 +297,9 @@ func (r *PurchaseRepository) fetchPurchaseDetails(purchase *domain.Purchases) er
 func querySelectPurchase(whereClause string) string {
 	query := fmt.Sprintf(`
 		SELECT
-			p.id, p.reference, p.invoice_number, p.warehouse_id, p.supplier_id, p.currency_id, p.issue_date, p.exchange_rate, p.discount, p.subtotal, p.total, p.total_paid, p.payment_method_id,
+			p.id, p.reference, p.invoice_number, p.supplier_id, p.warehouse_id, p.currency_id, p.exchange_rate, p.purchase_status, p.purchase_order_id, p.issue_date, p.received_date, p.payment_date, p.discount, p.subtotal, p.tax, p.total, p.total_paid, p.change, p.payment_method_id, p.created_by, p.document_attachment, p.notes,
 			c.id AS "supplier.id", c.name AS "supplier.name", c.ruc AS "supplier.ruc", c.email AS "supplier.email", c.phone AS "supplier.phone",
+			cu.id AS "currency.id", cu.name AS "currency.name", cu.code AS "currency.code", cu.symbol AS "currency.symbol",
 			w.id AS "warehouse.id", w.branch_office_id AS "warehouse.branch_office_id", w.name AS "warehouse.name",
 			bo.id AS "warehouse.branch_office.id", bo.company_id AS "warehouse.branch_office.company_id", bo.name AS "warehouse.branch_office.name",
 			co.id AS "warehouse.branch_office.company.id", co.name AS "warehouse.branch_office.company.name", co.ruc AS "warehouse.branch_office.company.ruc", co.email AS "warehouse.branch_office.company.email", co.phone AS "warehouse.branch_office.company.phone", co.address AS "warehouse.branch_office.company.address",
@@ -317,6 +316,23 @@ func querySelectPurchase(whereClause string) string {
 		WHERE %s
 		ORDER BY p.id DESC
 	`, whereClause)
-	
+
 	return query
+}
+
+// Obtener la última referencia registrada
+func (r *PurchaseRepository) GetLastPurchaseReference() (string, error) {
+	var lastReference string
+
+	query := `SELECT reference FROM purchases ORDER BY id DESC LIMIT 1`
+	err := r.db.QueryRow(query).Scan(&lastReference)
+	if err != nil {
+		// Si no hay registros, devuelve cadena vacía
+		if err == sql.ErrNoRows {
+			return "", nil
+		}
+		return "", err
+	}
+
+	return lastReference, nil
 }

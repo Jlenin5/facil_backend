@@ -11,7 +11,7 @@ import (
 	"github.com/Jlenin5/facil_backend/internal/usecase"
 	"github.com/Jlenin5/facil_backend/pkg/middleware"
 	"github.com/gorilla/mux"
-	"github.com/jung-kurt/gofpdf"
+	// "github.com/jung-kurt/gofpdf"
 	"github.com/tealeg/xlsx"
 )
 
@@ -90,7 +90,6 @@ func (h *PurchaseHandler) CreatePurchase(w http.ResponseWriter, r *http.Request)
 	json.NewEncoder(w).Encode(map[string]string{"message": "Purchase created successfully"})
 }
 
-
 // Obtener todas las ventas
 func (h *PurchaseHandler) GetAllPurchases(w http.ResponseWriter, r *http.Request) {
 	purchases, err := h.PurchaseUC.GetAllPurchases()
@@ -149,7 +148,7 @@ func (h *PurchaseHandler) UpdatePurchase(w http.ResponseWriter, r *http.Request)
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"message": "Purchase updated successfully"})
 }
-
+/*
 // Visualizar una venta en Pdf por Documento
 func (h *PurchaseHandler) OpenPDF(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -259,7 +258,7 @@ func (h *PurchaseHandler) OpenPDF(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/pdf")
 	// w.Header().Set("Content-Disposition", "inline; filename=document-"+*sale.Bill.String+".pdf")
 	pdf.Output(w)
-}
+}*/
 
 // Exportar datos a Excel
 func (h *PurchaseHandler) ExportExcel(w http.ResponseWriter, r *http.Request) {
