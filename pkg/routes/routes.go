@@ -213,12 +213,22 @@ func ProductRoutes(router *mux.Router, productUC *usecase.ProductUseCase) {
 	router.HandleFunc("/products", handler.DeleteProductsByIds).Methods("DELETE")
 }
 
+// purchases
+func PurchaseRoutes(router *mux.Router, purchaseUC *usecase.PurchaseUseCase) {
+	handler := handlers.NewPurchaseHandler(purchaseUC)
+	router.HandleFunc("/purchases", handler.GetAllPurchases).Methods("GET")
+	router.HandleFunc("/purchases/{id}", handler.GetPurchaseById).Methods("GET")
+	router.HandleFunc("/purchases", handler.CreatePurchase).Methods("POST")
+	router.HandleFunc("/purchases/{id}", handler.UpdatePurchase).Methods("PUT")
+}
+
 // purchase orders
 func PurchaseOrderRoutes(router *mux.Router, purchaseOrderUC *usecase.PurchaseOrderUseCase) {
 	handler := handlers.NewPurchaseOrderHandler(purchaseOrderUC)
 	router.HandleFunc("/purchase-orders", handler.GetAllPurchaseOrders).Methods("GET")
 	router.HandleFunc("/purchase-orders/{id}", handler.GetPurchaseOrderByID).Methods("GET")
 	router.HandleFunc("/purchase-orders", handler.PostPurchaseOrder).Methods("POST")
+	router.HandleFunc("/purchase-orders/{id}", handler.UpdatePurchaseOrder).Methods("PUT")
 }
 
 // purchase requests

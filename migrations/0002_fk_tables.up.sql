@@ -64,10 +64,22 @@ ALTER TABLE shipping_details ADD CONSTRAINT fk_shipping_details_order FOREIGN KE
 
 ALTER TABLE purchase_orders ADD CONSTRAINT fk_purchase_orders_warehouse FOREIGN KEY (warehouse_id) REFERENCES warehouses(id) ON DELETE CASCADE;
 ALTER TABLE purchase_orders ADD CONSTRAINT fk_purchase_orders_supplier FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE CASCADE;
-ALTER TABLE purchase_orders ADD CONSTRAINT fk_purchase_orders_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
+ALTER TABLE purchase_orders ADD CONSTRAINT fk_purchase_orders_currency FOREIGN KEY (currency_id) REFERENCES currencies(id) ON DELETE CASCADE;
+ALTER TABLE purchase_orders ADD CONSTRAINT fk_purchase_orders_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL;
+ALTER TABLE purchase_orders ADD CONSTRAINT fk_purchase_orders_approved_by FOREIGN KEY (approved_by) REFERENCES users(id) ON DELETE SET NULL;
 
 ALTER TABLE purchase_order_details ADD CONSTRAINT fk_purchase_order_details_purchase_order FOREIGN KEY (purchase_order_id) REFERENCES purchase_orders(id) ON DELETE CASCADE;
 ALTER TABLE purchase_order_details ADD CONSTRAINT fk_purchase_order_details_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE;
+
+ALTER TABLE purchases ADD CONSTRAINT fk_purchases_warehouse FOREIGN KEY (warehouse_id) REFERENCES warehouses(id) ON DELETE CASCADE;
+ALTER TABLE purchases ADD CONSTRAINT fk_purchases_supplier FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE CASCADE;
+ALTER TABLE purchases ADD CONSTRAINT fk_purchases_currency FOREIGN KEY (currency_id) REFERENCES currencies(id) ON DELETE CASCADE;
+ALTER TABLE purchases ADD CONSTRAINT fk_purchases_purchase_order FOREIGN KEY (purchase_order_id) REFERENCES purchase_orders(id) ON DELETE CASCADE;
+ALTER TABLE purchases ADD CONSTRAINT fk_purchases_payment_method FOREIGN KEY (payment_method_id) REFERENCES payment_methods(id) ON DELETE CASCADE;
+ALTER TABLE purchases ADD CONSTRAINT fk_purchases_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE;
+
+ALTER TABLE purchase_details ADD CONSTRAINT fk_purchase_details_purchase FOREIGN KEY (purchase_id) REFERENCES purchases(id) ON DELETE CASCADE;
+ALTER TABLE purchase_details ADD CONSTRAINT fk_purchase_details_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE;
 
 ALTER TABLE purchase_order_payments ADD CONSTRAINT fk_purchase_order_payments_payment_method FOREIGN KEY (payment_method_id) REFERENCES payment_methods(id) ON DELETE CASCADE;
 ALTER TABLE purchase_order_payments ADD CONSTRAINT fk_purchase_order_payments_purchase_order FOREIGN KEY (purchase_order_id) REFERENCES purchase_orders(id) ON DELETE CASCADE;

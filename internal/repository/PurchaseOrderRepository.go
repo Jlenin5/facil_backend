@@ -24,19 +24,49 @@ func (r *PurchaseOrderRepository) CreatePurchaseOrder(order *domain.PurchaseOrde
 		return err
 	}
 
+	// Descomponer la estructura sale en sus campos individuales
+	orderMap := map[string]interface{}{
+		"reference":           order.Reference,
+		"warehouse_id":        order.Warehouse_Id,
+		"supplier_id":         order.Supplier_Id,
+		"currency_id":         order.Currency_Id,
+		"exchange_rate":       order.Exchange_Rate,
+		"discount":            order.Discount,
+		"issue_date":          order.Issue_Date,
+		"tax":                 order.Tax,
+		"subtotal":            order.Subtotal,
+		"total":               order.Total,
+		"document_attachment": order.Document_Attachment,
+		"order_status":        order.Order_Status,
+		"approval_date":       order.Approval_Date,
+		"created_by":          order.Created_By,
+		"approved_by":         order.Approved_By,
+		"migrate_purchase":    order.Migrate_Purchase,
+		"notes":               order.Notes,
+	}
+
 	// Insertar la orden de compra
 	orderQuery := `
 		INSERT INTO purchase_orders (
-			reference, description, warehouse_id, supplier_id, supplier_document, exchange_rate, discount, user_id, issue_date, tax, subtotal, total, order_status, date_approved, migrate_purchase
+			reference, warehouse_id, supplier_id, currency_id, exchange_rate, discount, issue_date, tax, subtotal, total, document_attachment, order_status, approval_date, created_by, approved_by, migrate_purchase, notes
 		) VALUES (
-			:reference, :description, :warehouse_id, :supplier_id, :supplier_document, :exchange_rate, :discount, :user_id, :date, :tax, :subtotal, :total, :order_status, :date_approved, :migrate_purchase
+			:reference, :warehouse_id, :supplier_id, :currency_id, :exchange_rate, :discount, :issue_date, :tax, :subtotal, :total, :document_attachment, :order_status, :approval_date, :created_by, :approved_by, :migrate_purchase, :notes
 		) RETURNING id
 	`
+
 	var orderId int
-	err = tx.QueryRowx(orderQuery, order).Scan(&orderId)
+	stmt, err := tx.PrepareNamed(orderQuery) // Preparar la consulta nombrada
 	if err != nil {
-		fmt.Printf("Error creando la orden de compra: %v\n", err)
 		tx.Rollback()
+		fmt.Printf("Error preparando la consulta: %v\n", err)
+		return err
+	}
+	defer stmt.Close()
+
+	err = stmt.Get(&orderId, orderMap) // Ejecutar la consulta y obtener el ID
+	if err != nil {
+		tx.Rollback()
+		fmt.Printf("Error insertando la orden de compra: %v\n", err)
 		return err
 	}
 
@@ -45,9 +75,9 @@ func (r *PurchaseOrderRepository) CreatePurchaseOrder(order *domain.PurchaseOrde
 		detail.Purchase_Order_Id = orderId
 		detailQuery := `
 			INSERT INTO purchase_order_details (
-				 purchase_order_id, product_id, quantity, price, total
+				purchase_order_id, product_id, quantity, discount, price, subtotal, total
 			) VALUES (
-				:purchase_order_id, :product_id, :quantity, :price, :total
+				:purchase_order_id, :product_id, :quantity, :discount, :price, :subtotal, :total
 			)
 		`
 		_, err = tx.NamedExec(detailQuery, detail)
@@ -70,68 +100,16 @@ func (r *PurchaseOrderRepository) CreatePurchaseOrder(order *domain.PurchaseOrde
 // Obtener todas las órdenes de compra
 func (r *PurchaseOrderRepository) GetAllPurchaseOrders() ([]domain.PurchaseOrders, error) {
 	var purchaseOrders []domain.PurchaseOrders
-	query := "SELECT id, reference, description, warehouse_id, supplier_id, supplier_document, exchange_rate, discount, user_id, issue_date, tax, subtotal, total, order_status, date_approved, migrate_purchase FROM purchase_orders WHERE deleted_at IS NULL"
-	err := r.db.Select(&purchaseOrders, query)
-	if err != nil {
-		fmt.Printf("Error obteniendo órdenes de compra: %v\n", err)
-		return nil, err
+	query := querySelectPurchaseOrder("po.deleted_at IS NULL")
+	if err := r.db.Select(&purchaseOrders, query); err != nil {
+		return nil, fmt.Errorf("error obteniendo órdenes de compra: %w", err)
 	}
 
 	// Iterar sobre las órdenes de compra y agregar los detalles de cada orden
 	for i := range purchaseOrders {
-		// Obtener almacén de la orden de compra
-		var warehouse domain.Warehouses
-		err = r.db.Get(&warehouse, `
-			SELECT w.id, w.name, w.address, w.status
-			FROM warehouses w
-			WHERE w.id = $1 AND w.deleted_at IS NULL
-		`, purchaseOrders[i].Warehouse_Id)
-		if err != nil && err != sql.ErrNoRows { // Manejar casos donde no hay almacén asociado
-			fmt.Printf("Error obteniendo el almacén para la orden de compra %d: %v\n", purchaseOrders[i].Id, err)
-			return nil, err
+		if err := r.fetchPurchaseOrderDetails(&purchaseOrders[i]); err != nil {
+			return nil, fmt.Errorf("error obteniendo detalles de la orden de compra %d: %w", purchaseOrders[i].Id, err)
 		}
-		purchaseOrders[i].Warehouse = &warehouse
-
-		// Obtener proveedor de la orden de compra
-		var supplier domain.Suppliers
-		err = r.db.Get(&supplier, `
-			SELECT s.id, s.name, s.email, s.address, s.phone, s.status
-			FROM suppliers s
-			WHERE s.id = $1 AND s.deleted_at IS NULL
-		`, purchaseOrders[i].Supplier_Id)
-		if err != nil && err != sql.ErrNoRows { // Manejar casos donde no hay proveedor asociado
-			fmt.Printf("Error obteniendo el proveedor para la orden de compra %d: %v\n", purchaseOrders[i].Id, err)
-			return nil, err
-		}
-		purchaseOrders[i].Supplier = &supplier
-
-		// Obtener usuario de la orden de compra
-		var user domain.Users
-		err = r.db.Get(&user, `
-			SELECT u.id, u.role_id, u.username, u.avatar, u.email, u.status
-			FROM users u
-			WHERE u.id = $1 AND u.deleted_at IS NULL
-		`, purchaseOrders[i].User_Id)
-		if err != nil && err != sql.ErrNoRows { // Manejar casos donde no hay usuario asociado
-			fmt.Printf("Error obteniendo el usuario para la orden de compra %d: %v\n", purchaseOrders[i].Id, err)
-			return nil, err
-		}
-		purchaseOrders[i].User = &user
-
-		var purchaseOrderDetails []domain.PurchaseOrderDetails
-		// Consulta para obtener los detalles de cada orden de compra
-		detailsQuery := `
-			SELECT pod.id, pod.purchase_order_id, pod.product_id, pod.quantity, pod.price, pod.total FROM purchase_order_details pod WHERE pod.purchase_order_id = $1 AND pod.deleted_at IS NULL
-		`
-
-		err := r.db.Select(&purchaseOrderDetails, detailsQuery, purchaseOrders[i].Id)
-		if err != nil {
-			fmt.Printf("Error obteniendo detalles de la orden de compra %d: %v\n", purchaseOrders[i].Id, err)
-			return nil, err
-		}
-
-		// Asignar los detalles a la orden correspondiente
-		purchaseOrders[i].PurchaseOrderDetails = purchaseOrderDetails
 	}
 
 	return purchaseOrders, nil
@@ -139,27 +117,17 @@ func (r *PurchaseOrderRepository) GetAllPurchaseOrders() ([]domain.PurchaseOrder
 
 // Obtener una orden de compra por ID junto con sus detalles
 func (r *PurchaseOrderRepository) GetPurchaseOrderByID(orderId int) (*domain.PurchaseOrders, error) {
-	var purchaseOrders domain.PurchaseOrders
-	query := "SELECT id, reference, description, warehouse_id, supplier_id, supplier_document, exchange_rate, discount, user_id, issue_date, tax, subtotal, total, order_status, date_approved, migrate_purchase FROM purchase_orders WHERE id = $1 AND deleted_at IS NULL"
-	err := r.db.Get(&purchaseOrders, query, orderId)
-	if err != nil {
-		fmt.Printf("Error obteniendo orden de compra con ID %d: %v\n", orderId, err)
-		return nil, err
+	var purchaseOrder domain.PurchaseOrders
+	query := querySelectPurchaseOrder("po.id = $1 AND po.deleted_at IS NULL")
+	if err := r.db.Get(&purchaseOrder, query, orderId); err != nil {
+		return nil, fmt.Errorf("error obteniendo compra con ID %d: %w", orderId, err)
 	}
 
-	var purchaseOrderDetails []domain.PurchaseOrderDetails
-	detailQuery := `
-		SELECT pod.id, pod.purchase_order_id, pod.product_id, pod.quantity, pod.price, pod.total FROM purchase_order_details pod WHERE pod.purchase_order_id = $1 AND pod.deleted_at IS NULL
-	`
-	err = r.db.Select(&purchaseOrderDetails, detailQuery, orderId)
-	if err != nil {
-		fmt.Printf("Error obteniendo detalles para la orden de compra %d: %v\n", orderId, err)
-		return nil, err
+	if err := r.fetchPurchaseOrderDetails(&purchaseOrder); err != nil {
+		return nil, fmt.Errorf("error obteniendo detalles de la orden de compra %d: %w", orderId, err)
 	}
 
-	purchaseOrders.PurchaseOrderDetails = purchaseOrderDetails
-
-	return &purchaseOrders, nil
+	return &purchaseOrder, nil
 }
 
 // Actualizar una orden de compra
@@ -174,21 +142,23 @@ func (r *PurchaseOrderRepository) UpdatePurchaseOrder(order *domain.PurchaseOrde
 	orderQuery := `
 		UPDATE purchase_orders
 		SET
-			reference = :reference,
-			description = :description,
-			warehouse_id = :warehouse_id,
-			supplier_id = :supplier_id,
-			supplier_document = :supplier_document,
-			exchange_rate = :exchange_rate,
-			discount = :discount,
-			user_id = :user_id,
-			date = :date,
-			tax = :tax,
-			subtotal = :subtotal,
-			total = :total,
-			order_status = :order_status,
-			date_approved = :date_approved,
-			migrate_purchase = :migrate_purchase,
+			reference           = :reference,
+			warehouse_id        = :warehouse_id,
+			supplier_id         = :supplier_id,
+			currency_id         = :currency_id,
+			exchange_rate       = :exchange_rate,
+			discount            = :discount,
+			issue_date          = :issue_date,
+			tax                 = :tax,
+			subtotal            = :subtotal,
+			total               = :total,
+			document_attachment = :document_attachment,
+			order_status        = :order_status,
+			approval_date       = :approval_date,
+			created_by          = :created_by,
+			approved_by         = :approved_by,
+			migrate_purchase    = :migrate_purchase,
+			notes               = :notes,
 			updated_at = NOW()
 		WHERE id = :id AND deleted_at IS NULL
 	`
@@ -201,14 +171,16 @@ func (r *PurchaseOrderRepository) UpdatePurchaseOrder(order *domain.PurchaseOrde
 
 	// Actualizar o insertar los detalles de la orden
 	for _, detail := range details {
-		if detail.Id == 0 {
+		cadena := fmt.Sprintf("%d", detail.Id)
+		longitud := len(cadena)
+		if longitud == 13 {
 			// Insertar nuevo detalle
 			detail.Purchase_Order_Id = order.Id
 			detailQuery := `
-				INSERT INTO sale_order_details (
-					 purchase_order_id, product_id, quantity, price, total
+				INSERT INTO purchase_order_details (
+					purchase_order_id, product_id, quantity, discount, price, subtotal, total
 				) VALUES (
-					:purchase_order_id, :product_id, :quantity, :price, :total
+					:purchase_order_id, :product_id, :quantity, :discount, :price, :subtotal, :total
 				)
 			`
 			_, err = tx.NamedExec(detailQuery, detail)
@@ -220,11 +192,14 @@ func (r *PurchaseOrderRepository) UpdatePurchaseOrder(order *domain.PurchaseOrde
 		} else {
 			// Actualizar detalle existente
 			detailQuery := `
-				UPDATE sale_order_details
+				UPDATE purchase_order_details
 				SET
+					purchase_order_id = :purchase_order_id,
 					product_id = :product_id,
 					quantity = :quantity,
+					discount = :discount,
 					price = :price,
+					subtotal = :subtotal,
 					total = :total,
 					updated_at = NOW()
 				WHERE id = :id AND deleted_at IS NULL
@@ -247,35 +222,62 @@ func (r *PurchaseOrderRepository) UpdatePurchaseOrder(order *domain.PurchaseOrde
 	return nil
 }
 
-// Eliminar (suavemente) una orden de compra y sus detalles
-func (r *PurchaseOrderRepository) DeletePurchaseOrder(orderID int) error {
-	tx, err := r.db.Beginx()
-	if err != nil {
-		fmt.Printf("Error iniciando transacción: %v\n", err)
-		return err
+// Obtener detalles de una orden de compra
+func (r *PurchaseOrderRepository) fetchPurchaseOrderDetails(purchaseOrder *domain.PurchaseOrders) error {
+	var details []domain.PurchaseOrderDetails
+	query := `
+		SELECT
+			pod.id, pod.purchase_order_id, pod.product_id, pod.quantity, pod.price, pod.discount, pod.subtotal, pod.total,
+			p.id AS "product.id", p.name AS "product.name", p.price AS "product.price", p.cost AS "product.cost"
+		FROM purchase_order_details pod
+		LEFT JOIN products p ON pod.product_id=p.id
+		WHERE pod.purchase_order_id = $1
+	`
+
+	if err := r.db.Select(&details, query, purchaseOrder.Id); err != nil {
+		return fmt.Errorf("error obteniendo detalles de la compra: %w", err)
 	}
 
-	orderQuery := "UPDATE purchase_orders SET deleted_at = NOW() WHERE id = $1 AND deleted_at IS NULL"
-	_, err = tx.Exec(orderQuery, orderID)
-	if err != nil {
-		fmt.Printf("Error eliminando orden de compra: %v\n", err)
-		tx.Rollback()
-		return err
-	}
-
-	detailQuery := "UPDATE purchase_order_details SET deleted_at = NOW() WHERE purchase_order_id = $1 AND deleted_at IS NULL"
-	_, err = tx.Exec(detailQuery, orderID)
-	if err != nil {
-		fmt.Printf("Error eliminando detalles de la orden: %v\n", err)
-		tx.Rollback()
-		return err
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		fmt.Printf("Error confirmando transacción: %v\n", err)
-		return err
-	}
-
+	purchaseOrder.PurchaseOrderDetails = details
 	return nil
+}
+
+// Obtener la consulta SQL
+func querySelectPurchaseOrder(whereClause string) string {
+	query := fmt.Sprintf(`
+		SELECT
+			po.id, po.reference, po.warehouse_id, po.supplier_id, po.currency_id, po.exchange_rate, po.discount, po.issue_date, po.tax, po.subtotal, po.total, po.document_attachment, po.order_status, po.approval_date, po.created_by, po.approved_by, po.migrate_purchase, po.notes,
+			s.id AS "supplier.id", s.name AS "supplier.name", s.ruc AS "supplier.ruc", s.email AS "supplier.email", s.phone AS "supplier.phone",
+			cu.id AS "currency.id", cu.name AS "currency.name", cu.code AS "currency.code", cu.symbol AS "currency.symbol",
+			w.id AS "warehouse.id", w.branch_office_id AS "warehouse.branch_office_id", w.name AS "warehouse.name",
+			bo.id AS "warehouse.branch_office.id", bo.company_id AS "warehouse.branch_office.company_id", bo.name AS "warehouse.branch_office.name",
+			co.id AS "warehouse.branch_office.company.id", co.name AS "warehouse.branch_office.company.name", co.ruc AS "warehouse.branch_office.company.ruc", co.email AS "warehouse.branch_office.company.email", co.phone AS "warehouse.branch_office.company.phone", co.address AS "warehouse.branch_office.company.address"
+		FROM purchase_orders po
+		LEFT JOIN suppliers s ON po.supplier_id=s.id
+		LEFT JOIN currencies cu ON po.currency_id=cu.id
+		LEFT JOIN warehouses w ON po.warehouse_id=w.id
+		LEFT JOIN branch_offices bo ON w.branch_office_id=bo.id
+		LEFT JOIN companies co ON bo.company_id=co.id
+		WHERE %s
+		ORDER BY po.id DESC
+	`, whereClause)
+	
+	return query
+}
+
+// Obtener la última referencia registrada
+func (r *PurchaseOrderRepository) GetLastPurchaseOrderReference() (string, error) {
+	var lastReference string
+
+	query := `SELECT reference FROM purchase_orders ORDER BY id DESC LIMIT 1`
+	err := r.db.QueryRow(query).Scan(&lastReference)
+	if err != nil {
+		// Si no hay registros, devuelve cadena vacía
+		if err == sql.ErrNoRows {
+			return "", nil
+		}
+		return "", err
+	}
+
+	return lastReference, nil
 }

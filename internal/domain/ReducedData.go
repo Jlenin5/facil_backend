@@ -79,6 +79,11 @@ type SaleOrderReducedData struct {
 	Reference string `json:"reference"`
 }
 
+type PurchaseOrderReducedData struct {
+	Id        int    `json:"id"`
+	Reference string `json:"reference"`
+}
+
 type QuoteReducedData struct {
 	Id        int    `json:"id"`
 	Reference string `json:"reference"`

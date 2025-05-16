@@ -93,7 +93,7 @@ INSERT INTO warehouses (branch_office_id, name, description, address, status) VA
 
 -- Insertar datos en la tabla suscripciones
 INSERT INTO subscriptions (company_id, plan_id, end_date, status) VALUES
-(1, 1, '2025-03-01 15:04:41.474091', 'active');
+(1, 1, '2026-03-01 15:04:41.474091', 'active');
 
 -- Insertar datos en la tabla work_areas
 INSERT INTO work_areas (name, description) VALUES
@@ -363,36 +363,79 @@ INSERT INTO sale_order_details (
 ('A Walk Amongst Friends - Canvas Print', 3, 1, 5, B'0', NULL, 10.24, 51.20, 51.20);
 
 -- Insertar datos en la tabla purchase_orders
-INSERT INTO purchase_orders (reference, description, warehouse_id, supplier_id, supplier_document, exchange_rate, discount, user_id, issue_date, tax, subtotal, total, order_status, date_approved, migrate_purchase)
+INSERT INTO purchase_orders (reference, warehouse_id, supplier_id, currency_id, exchange_rate, discount, issue_date, tax, subtotal, total, order_status, created_by, migrate_purchase)
 VALUES
-('OC-00001', 'Compra de lienzos', 1, 1, '12345678', 3.75, 5.00, 1, '2024-07-01 10:00:00', 10.00, 180.00, 198.00, 'paid', '2024-07-02', B'0'),
-('OC-00002', 'Materiales para enmarcado', 2, 2, '87654321', 3.70, 0.00, 1, '2024-07-03 15:30:00', 8.00, 240.00, 259.20, 'approved', '2024-07-04', B'0'),
-('OC-00003', 'Impresión en alta calidad', 3, 3, '20481234', 3.80, 10.00, 1, '2024-07-05 12:45:00', 9.50, 500.00, 547.50, 'paid', '2024-07-06', B'1'),
-('OC-00004', 'Tintas y papeles premium', 4, 4, '23456789', 3.85, 3.00, 1, '2024-07-07 09:20:00', 7.00, 300.00, 321.00, 'unpaid', NULL, B'0'),
-('OC-00005', 'Envío de stock adicional', 5, 5, '34567890', 3.78, 5.00, 1, '2024-07-09 14:10:00', 6.50, 420.00, 447.30, 'approved', '2024-07-10', B'0'),
-('OC-00006', 'Compra de nuevos diseños', 6, 6, '20551234', 3.79, 8.00, 1, '2024-07-11 17:50:00', 8.20, 350.00, 378.70, 'paid', '2024-07-12', B'1'),
-('OC-00007', 'Refill de materiales', 7, 7, '45678901', 3.76, 2.00, 1, '2024-07-13 11:05:00', 7.80, 275.00, 296.45, 'paid', '2024-07-14', B'0'),
-('OC-00008', 'Compra de bastidores', 8, 8, '56789012', 3.77, 0.00, 1, '2024-07-15 13:25:00', 8.50, 600.00, 648.00, 'unpaid', NULL, B'0'),
-('OC-00009', 'Adquisición de marcos', 9, 9, '20661234', 3.74, 4.00, 1, '2024-07-17 16:40:00', 9.00, 480.00, 523.20, 'approved', '2024-07-18', B'1'),
-('OC-00010', 'Compras generales', 2, 10, '67890123', 3.80, 6.00, 1, '2024-07-19 10:10:00', 7.50, 550.00, 591.25, 'paid', '2024-07-20', B'0');
+('OC-00001', 1, 1, 6, 3.75, 5.00, '2024-07-01 10:00:00', 10.00, 180.00, 198.00, 'canceled', 1, B'0'),
+('OC-00002', 2, 2, 6, 3.70, 0.00, '2024-07-03 15:30:00', 8.00, 240.00, 259.20, 'approved', 1, B'0'),
+('OC-00003', 3, 3, 6, 3.80, 10.00, '2024-07-05 12:45:00', 9.50, 500.00, 547.50, 'partial', 1, B'1'),
+('OC-00004', 4, 4, 6, 3.85, 3.00, '2024-07-07 09:20:00', 7.00, 300.00, 321.00, 'rejected', 1, B'0'),
+('OC-00005', 5, 5, 6, 3.78, 5.00, '2024-07-09 14:10:00', 6.50, 420.00, 447.30, 'approved', 1, B'0'),
+('OC-00006', 6, 6, 6, 3.79, 8.00, '2024-07-11 17:50:00', 8.20, 350.00, 378.70, 'partial', 1, B'1'),
+('OC-00007', 7, 7, 6, 3.76, 2.00, '2024-07-13 11:05:00', 7.80, 275.00, 296.45, 'received', 1, B'0'),
+('OC-00008', 8, 8, 6, 3.77, 0.00, '2024-07-15 13:25:00', 8.50, 600.00, 648.00, 'rejected', 1, B'0'),
+('OC-00009', 9, 9, 6, 3.74, 4.00, '2024-07-17 16:40:00', 9.00, 480.00, 523.20, 'approved', 1, B'1'),
+('OC-00010', 2, 10, 6, 3.80, 6.00, '2024-07-19 10:10:00', 7.50, 550.00, 591.25, 'received', 1, B'0');
 
 -- Insertar datos en la tabla purchase_order_details
-INSERT INTO purchase_order_details (purchase_order_id, product_id, quantity, price, total)
+INSERT INTO purchase_order_details (purchase_order_id, product_id, quantity, price, subtotal, total)
 VALUES
-(1, 1, 5, 20.00, 100.00),
-(1, 2, 3, 25.00, 75.00),
-(2, 3, 4, 30.00, 120.00),
-(2, 4, 2, 28.00, 56.00),
-(3, 5, 5, 22.00, 110.00),
-(3, 6, 3, 26.00, 78.00),
-(4, 7, 4, 23.00, 92.00),
-(4, 8, 2, 32.00, 64.00),
-(5, 9, 3, 9.31, 27.93),
-(6, 1, 6, 20.00, 120.00),
-(7, 2, 5, 25.00, 125.00),
-(8, 3, 7, 30.00, 210.00),
-(9, 4, 4, 28.00, 112.00),
-(10, 5, 6, 22.00, 132.00);
+(1, 1, 5, 20.00, 100.00, 100.00),
+(1, 2, 3, 25.00, 75.00, 75.00),
+(2, 3, 4, 30.00, 120.00, 120.00),
+(2, 4, 2, 28.00, 56.00, 56.00),
+(3, 5, 5, 22.00, 110.00, 110.00),
+(3, 6, 3, 26.00, 78.00, 78.00),
+(4, 7, 4, 23.00, 92.00, 92.00),
+(4, 8, 2, 32.00, 64.00, 64.00),
+(5, 9, 3, 9.31, 27.93, 27.93),
+(6, 1, 6, 20.00, 120.00, 120.00),
+(7, 2, 5, 25.00, 125.00, 125.00),
+(8, 3, 7, 30.00, 210.00, 210.00),
+(9, 4, 4, 28.00, 112.00, 112.00),
+(10, 5, 6, 22.00, 132.00, 132.00);
+
+-- Insertar datos en la tabla purchases
+INSERT INTO purchases (
+    reference, invoice_number, supplier_id, warehouse_id, currency_id, exchange_rate, 
+    purchase_status, purchase_order_id, issue_date, received_date, payment_date, 
+    discount, subtotal, tax, total, total_paid, change, payment_method_id, 
+    created_by, document_attachment, notes
+)
+VALUES
+('CP-00001', 'INV-001', 3, 3, 6, 3.80, 'partial', 3, '2024-07-05', '2024-07-06', NULL, 10.00, 500.00, 9.50, 547.50, 0.00, 0.00, 1, 1, NULL, NULL),
+('CP-00002', 'INV-002', 6, 6, 6, 3.79, 'partial', 6, '2024-07-11', '2024-07-12', NULL, 8.00, 350.00, 8.20, 378.70, 0.00, 0.00, 1, 1, NULL, NULL),
+('CP-00003', 'INV-003', 7, 7, 6, 3.76, 'received', 7, '2024-07-13', '2024-07-14', '2024-07-15', 2.00, 275.00, 7.80, 296.45, 296.45, 0.00, 2, 1, NULL, NULL),
+('CP-00004', 'INV-004', 9, 9, 6, 3.74, 'received', 9, '2024-07-17', '2024-07-18', '2024-07-19', 4.00, 480.00, 9.00, 523.20, 523.20, 0.00, 2, 1, NULL, NULL),
+('CP-00005', 'INV-005', 10, 2, 6, 3.80, 'received', 10, '2024-07-19', '2024-07-20', '2024-07-21', 6.00, 550.00, 7.50, 591.25, 591.25, 0.00, 1, 1, NULL, NULL),
+('CP-00006', 'INV-006', 2, 2, 6, 3.70, 'received', 2, '2024-07-03', '2024-07-04', '2024-07-05', 0.00, 240.00, 8.00, 259.20, 259.20, 0.00, 2, 1, NULL, NULL),
+('CP-00007', 'INV-007', 1, 1, 6, 3.75, 'received', 1, '2024-07-01', '2024-07-02', '2024-07-03', 5.00, 180.00, 10.00, 198.00, 198.00, 0.00, 2, 1, NULL, NULL),
+('CP-00008', 'INV-008', 4, 4, 6, 3.85, 'canceled', 4, '2024-07-07', NULL, NULL, 3.00, 300.00, 7.00, 321.00, 0.00, 0.00, NULL, 1, NULL, NULL),
+('CP-00009', 'INV-009', 8, 8, 6, 3.77, 'canceled', 8, '2024-07-15', NULL, NULL, 0.00, 600.00, 8.50, 648.00, 0.00, 0.00, NULL, 1, NULL, NULL),
+('CP-00010', 'INV-010', 5, 5, 6, 3.78, 'draft', 5, '2024-07-09', NULL, NULL, 5.00, 420.00, 6.50, 447.30, 0.00, 0.00, NULL, 1, NULL, NULL),
+('CP-00011', 'INV-011', 2, 2, 6, 3.70, 'paid', 2, '2024-07-03', '2024-07-04', '2024-07-05', 0.00, 240.00, 8.00, 259.20, 259.20, 0.00, 2, 1, NULL, 'Pago adelantado'),
+('CP-00012', 'INV-012', 6, 6, 6, 3.79, 'unpaid', 6, '2024-07-11', NULL, NULL, 8.00, 350.00, 8.20, 378.70, 0.00, 0.00, 1, 1, NULL, 'Pendiente de abono');
+
+-- Insertar datos en la tabla purchase_details
+INSERT INTO purchase_details (purchase_id, product_id, quantity, price, discount, subtotal, total)
+VALUES
+(1, 5, 5, 22.00, 0.00, 110.00, 110.00),
+(1, 6, 3, 26.00, 0.00, 78.00, 78.00),
+(2, 1, 6, 20.00, 0.00, 120.00, 120.00),
+(3, 2, 5, 25.00, 0.00, 125.00, 125.00),
+(4, 4, 4, 28.00, 0.00, 112.00, 112.00),
+(5, 5, 6, 22.00, 0.00, 132.00, 132.00),
+(6, 3, 4, 30.00, 0.00, 120.00, 120.00),
+(6, 4, 2, 28.00, 0.00, 56.00, 56.00),
+(7, 1, 5, 20.00, 0.00, 100.00, 100.00),
+(7, 2, 3, 25.00, 0.00, 75.00, 75.00),
+(8, 7, 4, 23.00, 0.00, 92.00, 92.00),
+(8, 8, 2, 32.00, 0.00, 64.00, 64.00),
+(9, 3, 7, 30.00, 0.00, 210.00, 210.00),
+(10, 9, 3, 9.31, 0.00, 27.93, 27.93),
+(11, 3, 4, 30.00, 0.00, 120.00, 120.00),
+(11, 4, 2, 28.00, 0.00, 56.00, 56.00),
+(12, 1, 6, 20.00, 0.00, 120.00, 120.00),
+(12, 6, 2, 24.00, 0.00, 48.00, 48.00); 
 
 -- Insertar datos en la tabla purchase_order_payments
 INSERT INTO purchase_order_payments (payment_method_id, purchase_order_id, payment_date, amount, currency_id, exchange_rate, reference_number, status, notes) VALUES

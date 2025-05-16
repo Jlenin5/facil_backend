@@ -472,20 +472,22 @@ CREATE TABLE shipping_details (
 CREATE TABLE purchase_orders (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     reference CHAR(8) NOT NULL,
-    description TEXT DEFAULT NULL,
     warehouse_id INTEGER NOT NULL,
     supplier_id INTEGER NOT NULL,
-    supplier_document VARCHAR(20) NULL,
-    exchange_rate  DECIMAL(12,2),
+    currency_id INT NOT NULL,
+    exchange_rate  DECIMAL(12,2) DEFAULT 1.0000,
     discount  DECIMAL(12,2),
-    user_id INTEGER NULL,
     issue_date TIMESTAMP NOT NULL,
     tax  DECIMAL(12,2) NOT NULL,
     subtotal  DECIMAL(12,2) NOT NULL,
     total  DECIMAL(12,2) NOT NULL,
-    order_status VARCHAR(15) NOT NULL CHECK (order_status IN ('issued', 'paid', 'unpaid', 'pending', 'canceled', 'approved', 'partial_paid', 'shipped')) NOT NULL DEFAULT 'issued', -- Estado de la orden
-    date_approved DATE DEFAULT NULL,
+    document_attachment VARCHAR(255),
+    order_status VARCHAR(15) NOT NULL CHECK (order_status IN ('draft', 'requested', 'approved', 'rejected', 'partial', 'received', 'canceled')) NOT NULL DEFAULT 'draft', -- Estado de la orden
+    approval_date TIMESTAMP,
+    created_by INTEGER NOT NULL,
+    approved_by INTEGER,
     migrate_purchase BIT(1) NOT NULL DEFAULT B'0', -- Usar BIT(1) con valor predeterminado de 0
+    notes TEXT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP DEFAULT NULL
@@ -497,9 +499,53 @@ CREATE TABLE purchase_order_details (
     purchase_order_id INT,
     product_id INT,
     quantity  DECIMAL(12,2) NOT NULL,
-    price DECIMAL(12,2) NOT NULL CHECK (price >= 0),
     discount  DECIMAL(12,2) DEFAULT 0,
-    tax_rate DECIMAL(5, 2),
+    price DECIMAL(12,2) NOT NULL CHECK (price >= 0),
+    subtotal DECIMAL(5, 2) NOT NULL,
+    total  DECIMAL(12,2) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP DEFAULT NULL
+);
+
+-- Purchases Table
+CREATE TABLE purchases (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    reference VARCHAR(8) NOT NULL UNIQUE,
+    invoice_number VARCHAR(50),
+    supplier_id INTEGER NOT NULL,
+    warehouse_id INTEGER NOT NULL,
+    currency_id INTEGER NOT NULL,
+    exchange_rate DECIMAL(12, 4) DEFAULT 1.0000,
+    purchase_status VARCHAR(20) NOT NULL CHECK (purchase_status IN ('draft', 'received', 'partial', 'paid', 'unpaid', 'canceled')) NOT NULL DEFAULT 'draft',
+    purchase_order_id INTEGER,
+    issue_date DATE NOT NULL,
+    received_date DATE,
+    payment_date DATE,
+    discount DECIMAL(12, 2) DEFAULT 0,
+    subtotal DECIMAL(12, 2) DEFAULT 0,
+    tax DECIMAL(12, 2) DEFAULT 0,
+    total DECIMAL(12, 2) DEFAULT 0,
+    total_paid DECIMAL(12, 2) DEFAULT 0,
+    change DECIMAL(12, 2) DEFAULT 0,
+    payment_method_id INTEGER,
+    created_by INTEGER NOT NULL,
+    document_attachment VARCHAR(255),
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP
+);
+
+-- Purchase Details Table
+CREATE TABLE purchase_details (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    purchase_id INT,
+    product_id INT,
+    quantity  DECIMAL(12,2) NOT NULL,
+    discount  DECIMAL(12,2) DEFAULT 0,
+    price DECIMAL(12,2) NOT NULL CHECK (price >= 0),
+    subtotal DECIMAL(10,2) NOT NULL,
     total  DECIMAL(12,2) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
