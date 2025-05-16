@@ -3,7 +3,6 @@ package repository
 import (
 	"database/sql"
 	"fmt"
-	"reflect"
 
 	"github.com/Jlenin5/facil_backend/internal/domain"
 	"github.com/jmoiron/sqlx"
@@ -25,19 +24,45 @@ func (r *SaleOrderRepository) CreateSaleOrder(order *domain.SaleOrders, details 
 		return err
 	}
 
+	// Descomponer la estructura sale en sus campos individuales
+	orderMap := map[string]interface{}{
+		"reference":          order.Reference,
+		"warehouse_id":       order.Warehouse_Id,
+		"customer_id":        order.Customer_Id,
+		"currency_id":        order.Currency_Id,
+		"user_id":            order.User_Id,
+		"issue_date":         order.Issue_Date,
+		"exchange_rate":      order.Exchange_Rate,
+		"discount":           order.Discount,
+		"subtotal":           order.Subtotal,
+		"total":              order.Total,
+		"order_status":       order.Order_Status,
+		"date_approved":      order.Date_Approved,
+		"migrate_sale_order": order.Migrate_Sale_Order,
+		"quote_id":           order.Quote_Id,
+	}
+
 	// Insertar la orden de venta
 	orderQuery := `
 		INSERT INTO sale_orders (
-			reference, warehouse_id, customer_id, user_id, date, tax, discount, subtotal, total, payment_id, order_status
+			reference, warehouse_id, customer_id, currency_id, user_id, issue_date, exchange_rate, discount, subtotal, total, order_status, date_approved, migrate_sale_order, quote_id
 		) VALUES (
-			:reference, :warehouse_id, :customer_id, :user_id, :date, :tax, :discount, :subtotal, :total, :payment_id, :order_status
+			:reference, :warehouse_id, :customer_id, :currency_id, :user_id, :issue_date, :exchange_rate, :discount, :subtotal, :total, :order_status, :date_approved, :migrate_sale_order, :quote_id
 		) RETURNING id
 	`
 	var orderId int
-	err = tx.QueryRowx(orderQuery, order).Scan(&orderId)
+	stmt, err := tx.PrepareNamed(orderQuery) // Preparar la consulta nombrada
 	if err != nil {
-		fmt.Printf("Error creando la orden de venta: %v\n", err)
 		tx.Rollback()
+		fmt.Printf("Error preparando la consulta: %v\n", err)
+		return err
+	}
+	defer stmt.Close()
+
+	err = stmt.Get(&orderId, orderMap) // Ejecutar la consulta y obtener el ID
+	if err != nil {
+		tx.Rollback()
+		fmt.Printf("Error insertando la orden de venta: %v\n", err)
 		return err
 	}
 
@@ -47,9 +72,9 @@ func (r *SaleOrderRepository) CreateSaleOrder(order *domain.SaleOrders, details 
 		detail.Sale_Order_Id = orderId
 		detailQuery := `
 			INSERT INTO sale_order_details (
-				product_name, sale_order_id, product_id, quantity, igv, discount_method, discount, price, subtotal, total
+				product_name, sale_order_id, product_id, quantity, discount_method, discount, price, subtotal, total
 			) VALUES (
-				:product_name, :sale_order_id, :product_id, :quantity, :igv, :discount_method, :discount, :price, :subtotal, :total
+				:product_name, :sale_order_id, :product_id, :quantity, :discount_method, :discount, :price, :subtotal, :total
 			)
 		`
 		_, err = tx.NamedExec(detailQuery, detail)
@@ -190,17 +215,20 @@ func (r *SaleOrderRepository) UpdateSaleOrder(order *domain.SaleOrders, details 
 	orderQuery := `
 		UPDATE sale_orders
 		SET
-			reference = :reference,
-			warehouse_id = :warehouse_id,
-			customer_id = :customer_id,
-			user_id = :user_id,
-			tax = :tax,
-			discount = :discount,
-			subtotal = :subtotal,
-			total = :total,
-			payment_id = :payment_id,
-			date = :date,
-			date_approved = :date_approved,
+			reference =          :reference,
+			warehouse_id =       :warehouse_id,
+			customer_id =        :customer_id,
+			currency_id =        :currency_id,
+			user_id =            :user_id,
+			issue_date =         :issue_date,
+			exchange_rate =      :exchange_rate,
+			discount =           :discount,
+			subtotal =           :subtotal,
+			total =              :total,
+			order_status =       :order_status,
+			date_approved =      :date_approved,
+			migrate_sale_order = :migrate_sale_order,
+			quote_id =           :quote_id,
 			updated_at = NOW()
 		WHERE id = :id
 	`
@@ -213,15 +241,16 @@ func (r *SaleOrderRepository) UpdateSaleOrder(order *domain.SaleOrders, details 
 
 	// Actualizar o insertar los detalles de la orden
 	for _, detail := range details {
-		if detail.Id == 0 || reflect.TypeOf(detail.Id).Kind() == reflect.String {
-			detail.Id = 0
+		cadena := fmt.Sprintf("%d", detail.Id)
+		longitud := len(cadena)
+		if longitud == 13 {
 			// Insertar nuevo detalle
 			detail.Sale_Order_Id = order.Id
 			detailQuery := `
 				INSERT INTO sale_order_details (
-					product_name, sale_order_id, product_id, quantity, igv, discount_method, discount, price, subtotal, total
+					product_name, sale_order_id, product_id, quantity, discount_method, discount, price, subtotal, total
 				) VALUES (
-					:product_name, :sale_order_id, :product_id, :quantity, :igv, :discount_method, :discount, :price, :subtotal, :total
+					:product_name, :sale_order_id, :product_id, :quantity, :discount_method, :discount, :price, :subtotal, :total
 				)
 			`
 			_, err = tx.NamedExec(detailQuery, detail)
@@ -238,7 +267,6 @@ func (r *SaleOrderRepository) UpdateSaleOrder(order *domain.SaleOrders, details 
 					product_name = :product_name,
 					product_id = :product_id,
 					quantity = :quantity,
-					igv = :igv,
 					discount_method = :discount_method,
 					discount = :discount,
 					price = :price,

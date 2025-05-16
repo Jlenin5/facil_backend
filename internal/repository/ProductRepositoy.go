@@ -207,9 +207,9 @@ func (r *ProductRepository) GetAllProducts() ([]domain.Products, error) {
 
 		// Obtener stock del producto
 		var stock int
-		err = r.db.Get(&stock, `
-			SELECT 
-				COALESCE(SUM(current_stock), 0) 
+		err = r.db.Get(&stock,`
+			SELECT
+				COALESCE(SUM(current_stock), 0)
 			FROM stock_control
 			WHERE product_id = $1
 		`, products[i].Id)
@@ -314,17 +314,17 @@ func (r *ProductRepository) GetProductById(productId int) (*domain.Products, err
 
 	// Obtener stock del producto
 	var stock int
-	err = r.db.Get(&stock, `
-		SELECT 
-			COALESCE(SUM(current_stock), 0) 
-		FROM stock_control
-		WHERE product_id = $1
-	`, product.Id)
-	if err != nil {
-		fmt.Printf("Error obteniendo total de stock para producto %d: %v\n", product.Id, err)
-		return nil, err
-	}
-	product.Stock = stock
+	err = r.db.Get(&stock,`
+			SELECT
+				COALESCE(SUM(current_stock), 0)
+			FROM stock_control
+			WHERE product_id = $1
+		`, productId)
+		if err != nil {
+			fmt.Printf("Error obteniendo total de stock para producto %d: %v\n", productId, err)
+			return nil, err
+		}
+		product.Stock = stock
 
 	// Obtener booking del producto
 	var booking []domain.Booking
