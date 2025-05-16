@@ -7,6 +7,7 @@ import (
 
 	"github.com/Jlenin5/facil_backend/internal/domain"
 	"github.com/Jlenin5/facil_backend/internal/usecase"
+	"github.com/Jlenin5/facil_backend/pkg/middleware"
 	"github.com/gorilla/mux"
 )
 
@@ -20,11 +21,72 @@ func NewSaleOrderHandler(SaleOrderUC *usecase.SaleOrderUseCase) *SaleOrderHandle
 
 // Crear una orden de venta
 func (h *SaleOrderHandler) CreateSaleOrder(w http.ResponseWriter, r *http.Request) {
+	// Obtener los datos del usuario del contexto
+	userData, ok := r.Context().Value(middleware.UserContextKey).(map[string]interface{})
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Verificar que employee exista en userData
+	employeeData, exists := userData["employee"]
+	if !exists || employeeData == nil {
+		http.Error(w, "Employee not found in user data", http.StatusBadRequest)
+		return
+	}
+
+	// Asegurarse que employee sea un map[string]interface{}
+	employeeMap, ok := employeeData.(map[string]interface{})
+	if !ok {
+		http.Error(w, "Invalid employee data", http.StatusBadRequest)
+		return
+	}
+
+	// Verificar que warehouse_id exista en el map
+	warehouseIDRaw, exists := employeeMap["warehouse_id"]
+	if !exists || warehouseIDRaw == nil {
+		http.Error(w, "Warehouse ID not found", http.StatusBadRequest)
+		return
+	}
+
+	// Convertir warehouse_id a float64 y luego a int
+	warehouseIDFloat, ok := warehouseIDRaw.(float64)
+	if !ok {
+		http.Error(w, "Invalid warehouse_id type", http.StatusBadRequest)
+		return
+	}
+
+	warehouseId := int(warehouseIDFloat)
+
+	// Decodificar el cuerpo de la solicitud (el JSON con los datos de la venta)
 	var saleOrder domain.SaleOrders
 	err := json.NewDecoder(r.Body).Decode(&saleOrder)
 	if err != nil {
 		http.Error(w, "Invalid input", http.StatusBadRequest)
 		return
+	}
+
+	// Asignar los datos del usuario a la venta
+	saleOrder.Warehouse_Id = warehouseId
+
+	// Validar user_id del usuario autenticado
+	userIDRaw, exists := userData["id"]
+	if !exists {
+		http.Error(w, "User ID not found", http.StatusBadRequest)
+		return
+	}
+
+	userIDFloat, ok := userIDRaw.(float64)
+	if !ok {
+		http.Error(w, "Invalid user id", http.StatusBadRequest)
+		return
+	}
+
+	saleOrder.User_Id = int(userIDFloat)
+
+	// Reiniciar los IDs de los detalles de la venta (opcional si usas auto increment en la base)
+	for i := range saleOrder.SaleOrderDetails {
+		saleOrder.SaleOrderDetails[i].Id = 0
 	}
 
 	err = h.SaleOrderUC.CreateSaleOrder(&saleOrder, saleOrder.SaleOrderDetails)
