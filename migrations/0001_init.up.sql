@@ -3,7 +3,7 @@ CREATE TABLE plans (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     title VARCHAR(100) NOT NULL,
     subtitle VARCHAR(200) DEFAULT NULL,
-    price DECIMAL(10,2) NOT NULL,
+    price DECIMAL(12,2) NOT NULL,
     max_branch_offices SMALLINT NOT NULL CHECK (max_branch_offices >= 0),
     max_warehouses SMALLINT NOT NULL CHECK (max_warehouses >= 0),
     max_purchases SMALLINT NOT NULL CHECK (max_purchases >= 0),
@@ -48,7 +48,7 @@ CREATE TABLE taxes (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name VARCHAR(50) NOT NULL, -- IGV, ISC, Percepción, Retención, etc.
     description TEXT DEFAULT NULL, -- Explicación del impuesto
-    rate DECIMAL(10,2) NOT NULL, -- % de impuesto (Ejemplo: 18.00 para IGV)
+    rate DECIMAL(12,2) NOT NULL, -- % de impuesto (Ejemplo: 18.00 para IGV)
     tax_type  BIT(1) NOT NULL DEFAULT B'1', -- percentage(0) o fixed(1)
     status BIT(1) NOT NULL DEFAULT B'1', -- Usar BIT(1) con valor predeterminado de 1
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -61,7 +61,7 @@ CREATE TABLE tax_items (
     tax_id INT NOT NULL,
     reference_table VARCHAR(20) NOT NULL CHECK (reference_table IN ('sale_orders', 'sale_order_details', 'purchase_orders', 'purchase_order_details', 'sales', 'sale_details')),
     reference_id INT NOT NULL, -- ID de la orden o venta
-    amount DECIMAL(10,2) NOT NULL, -- Valor del impuesto calculado
+    amount DECIMAL(12,2) NOT NULL, -- Valor del impuesto calculado
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP DEFAULT NULL
@@ -179,7 +179,7 @@ CREATE TABLE employees (
     address VARCHAR(200),
     hire_date DATE NOT NULL,
     job_position_id INT,
-    salary NUMERIC(10,2) CHECK (salary >= 0) NOT NULL,
+    salary NUMERIC(12,2) CHECK (salary >= 0) NOT NULL,
     status BIT(1) NOT NULL DEFAULT B'1', -- Usar BIT(1) con valor predeterminado de 1
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -500,6 +500,7 @@ CREATE TABLE purchase_order_details (
     product_id INT,
     quantity  DECIMAL(12,2) NOT NULL,
     discount  DECIMAL(12,2) DEFAULT 0,
+    discount_method BIT(1) NOT NULL DEFAULT B'1',
     price DECIMAL(12,2) NOT NULL CHECK (price >= 0),
     subtotal DECIMAL(5, 2) NOT NULL,
     total  DECIMAL(12,2) NOT NULL,
@@ -544,8 +545,9 @@ CREATE TABLE purchase_details (
     product_id INT,
     quantity  DECIMAL(12,2) NOT NULL,
     discount  DECIMAL(12,2) DEFAULT 0,
+    discount_method BIT(1) NOT NULL DEFAULT B'1',
     price DECIMAL(12,2) NOT NULL CHECK (price >= 0),
-    subtotal DECIMAL(10,2) NOT NULL,
+    subtotal DECIMAL(12,2) NOT NULL,
     total  DECIMAL(12,2) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -583,16 +585,16 @@ CREATE TABLE sales (
     user_id INT NOT NULL,
     exchange_rate  DECIMAL(12,2) DEFAULT 1.0,
     discount  DECIMAL(12,2) DEFAULT NULL,
-    subtotal DECIMAL(10,2) NOT NULL,
-    total DECIMAL(10,2) NOT NULL,
-    total_paid DECIMAL(10,2) NOT NULL,
-    change DECIMAL(10,2) NOT NULL,
+    subtotal DECIMAL(12,2) NOT NULL,
+    total DECIMAL(12,2) NOT NULL,
+    total_paid DECIMAL(12,2) NOT NULL,
+    change DECIMAL(12,2) NOT NULL,
     sale_status VARCHAR(10) NOT NULL CHECK (sale_status IN ('issued', 'paid', 'unpaid', 'pending', 'canceled')) NOT NULL DEFAULT 'issued',
     payment_method_id INT NOT NULL,
     sale_order_id INT DEFAULT NULL,
     tax_identification VARCHAR(20) DEFAULT NULL,
-    retention DECIMAL(10,2) DEFAULT NULL,
-    perception DECIMAL(10,2) DEFAULT NULL,
+    retention DECIMAL(12,2) DEFAULT NULL,
+    perception DECIMAL(12,2) DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP DEFAULT NULL
@@ -604,12 +606,12 @@ CREATE TABLE sale_details (
     product_name VARCHAR(150) DEFAULT NULL,
     sale_id INT NOT NULL,
     product_id INT NOT NULL,
-    quantity DECIMAL(10,2) NOT NULL,
+    quantity DECIMAL(12,2) NOT NULL,
     discount_method BIT(1) NOT NULL DEFAULT B'1',
-    discount  DECIMAL(12,2) DEFAULT NULL,
-    price DECIMAL(10,2) NOT NULL,
-    subtotal DECIMAL(10,2) NOT NULL,
-    total DECIMAL(10,2) NOT NULL,
+    discount  DECIMAL(12,2) DEFAULT 0,
+    price DECIMAL(12,2) NOT NULL CHECK (price >= 0),
+    subtotal DECIMAL(12,2) NOT NULL,
+    total DECIMAL(12,2) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP DEFAULT NULL
@@ -623,7 +625,7 @@ CREATE TABLE opportunity_tracking (
     title VARCHAR(200) NOT NULL,
     description TEXT,
     status VARCHAR(50) CHECK (status IN ('open', 'in_progress', 'won', 'lost')) NOT NULL DEFAULT 'open',
-    expected_revenue DECIMAL(10,2), -- Ingreso estimado
+    expected_revenue DECIMAL(12,2), -- Ingreso estimado
     probability INT CHECK (probability BETWEEN 0 AND 100), -- Probabilidad de cierre
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -654,9 +656,9 @@ CREATE TABLE purchase_request_details (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     purchase_request_id INT NOT NULL,
     product_id INT NOT NULL,
-    quantity DECIMAL(10,2) NOT NULL CHECK (quantity > 0),
-    unit_price DECIMAL(10,2),
-    estimated_cost DECIMAL(10,2),
+    quantity DECIMAL(12,2) NOT NULL CHECK (quantity > 0),
+    unit_price DECIMAL(12,2),
+    estimated_cost DECIMAL(12,2),
     subtotal DECIMAL(12,2),
     received_quantity INT DEFAULT 0,
     status VARCHAR(50) CHECK (status IN ('pending', 'received', 'canceled')) DEFAULT 'pending',

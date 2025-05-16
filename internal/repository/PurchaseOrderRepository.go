@@ -75,9 +75,9 @@ func (r *PurchaseOrderRepository) CreatePurchaseOrder(order *domain.PurchaseOrde
 		detail.Purchase_Order_Id = orderId
 		detailQuery := `
 			INSERT INTO purchase_order_details (
-				purchase_order_id, product_id, quantity, discount, price, subtotal, total
+				purchase_order_id, product_id, quantity, discount_method, discount, price, subtotal, total
 			) VALUES (
-				:purchase_order_id, :product_id, :quantity, :discount, :price, :subtotal, :total
+				:purchase_order_id, :product_id, :quantity, :discount_method, :discount, :price, :subtotal, :total
 			)
 		`
 		_, err = tx.NamedExec(detailQuery, detail)
@@ -178,9 +178,9 @@ func (r *PurchaseOrderRepository) UpdatePurchaseOrder(order *domain.PurchaseOrde
 			detail.Purchase_Order_Id = order.Id
 			detailQuery := `
 				INSERT INTO purchase_order_details (
-					purchase_order_id, product_id, quantity, discount, price, subtotal, total
+					purchase_order_id, product_id, quantity, discount_method, discount, price, subtotal, total
 				) VALUES (
-					:purchase_order_id, :product_id, :quantity, :discount, :price, :subtotal, :total
+					:purchase_order_id, :product_id, :quantity, :discount_method, :discount, :price, :subtotal, :total
 				)
 			`
 			_, err = tx.NamedExec(detailQuery, detail)
@@ -197,6 +197,7 @@ func (r *PurchaseOrderRepository) UpdatePurchaseOrder(order *domain.PurchaseOrde
 					purchase_order_id = :purchase_order_id,
 					product_id = :product_id,
 					quantity = :quantity,
+					discount_method = :discount_method,
 					discount = :discount,
 					price = :price,
 					subtotal = :subtotal,
