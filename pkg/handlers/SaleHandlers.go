@@ -25,35 +25,35 @@ func NewSaleHandler(SaleUC *usecase.SaleUseCase) *SaleHandler {
 
 // Crear una venta
 func (h *SaleHandler) CreateSale(w http.ResponseWriter, r *http.Request) {
-	// ✅ 1. Obtener los datos del usuario del contexto
+	// Obtener los datos del usuario del contexto
 	userData, ok := r.Context().Value(middleware.UserContextKey).(map[string]interface{})
 	if !ok {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	// ✅ 2. Verificar que employee exista en userData
+	// Verificar que employee exista en userData
 	employeeData, exists := userData["employee"]
 	if !exists || employeeData == nil {
 		http.Error(w, "Employee not found in user data", http.StatusBadRequest)
 		return
 	}
 
-	// ✅ 3. Asegurarse que employee sea un map[string]interface{}
+	// Asegurarse que employee sea un map[string]interface{}
 	employeeMap, ok := employeeData.(map[string]interface{})
 	if !ok {
 		http.Error(w, "Invalid employee data", http.StatusBadRequest)
 		return
 	}
 
-	// ✅ 4. Verificar que warehouse_id exista en el map
+	// Verificar que warehouse_id exista en el map
 	warehouseIDRaw, exists := employeeMap["warehouse_id"]
 	if !exists || warehouseIDRaw == nil {
 		http.Error(w, "Warehouse ID not found", http.StatusBadRequest)
 		return
 	}
 
-	// ✅ 5. Convertir warehouse_id a float64 y luego a int
+	// Convertir warehouse_id a float64 y luego a int
 	warehouseIDFloat, ok := warehouseIDRaw.(float64)
 	if !ok {
 		http.Error(w, "Invalid warehouse_id type", http.StatusBadRequest)
@@ -62,7 +62,7 @@ func (h *SaleHandler) CreateSale(w http.ResponseWriter, r *http.Request) {
 
 	warehouseId := int(warehouseIDFloat)
 
-	// ✅ 6. Decodificar el cuerpo de la solicitud (el JSON con los datos de la venta)
+	// Decodificar el cuerpo de la solicitud (el JSON con los datos de la venta)
 	var sale domain.Sales
 	err := json.NewDecoder(r.Body).Decode(&sale)
 	if err != nil {
@@ -70,7 +70,7 @@ func (h *SaleHandler) CreateSale(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// ✅ 7. Asignar los datos del usuario a la venta
+	// Asignar los datos del usuario a la venta
 	sale.Warehouse_Id = warehouseId
 
 	// Validar user_id del usuario autenticado
@@ -88,19 +88,19 @@ func (h *SaleHandler) CreateSale(w http.ResponseWriter, r *http.Request) {
 
 	sale.User_Id = int(userIDFloat)
 
-	// ✅ 8. Reiniciar los IDs de los detalles de la venta (opcional si usas auto increment en la base)
+	// Reiniciar los IDs de los detalles de la venta (opcional si usas auto increment en la base)
 	for i := range sale.SaleDetails {
 		sale.SaleDetails[i].Id = 0
 	}
 
-	// ✅ 9. Crear la venta en la base de datos
+	// Crear la venta en la base de datos
 	err = h.SaleUC.CreateSale(&sale, sale.SaleDetails)
 	if err != nil {
 		http.Error(w, "Failed to create sale", http.StatusInternalServerError)
 		return
 	}
 
-	// ✅ 10. Responder con éxito
+	// Responder con éxito
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]string{"message": "Sale created successfully"})
 }

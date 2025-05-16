@@ -79,10 +79,10 @@ func (r *PurchaseRepository) CreatePurchase(purchase *domain.Purchases, details 
 	for _, detail := range details {
 		detail.Purchase_Id = purchaseId
 		detailQuery := `
-			INSERT INTO purchase_details (
-				purchase_id, product_id, quantity, discount, price, subtotal, total
+			INSERT INTO purchase_order_details (
+				purchase_order_id, product_id, quantity, discount_method, discount, price, subtotal, total
 			) VALUES (
-				:purchase_id, :product_id, :quantity, :discount, :price, :subtotal, :total
+				:purchase_order_id, :product_id, :quantity, :discount_method, :discount, :price, :subtotal, :total
 			)
 		`
 		_, err = tx.NamedExec(detailQuery, detail)
@@ -214,10 +214,10 @@ func (r *PurchaseRepository) UpdatePurchase(purchase *domain.Purchases, details 
 			// Insertar nuevo detalle
 			detail.Purchase_Id = purchase.Id
 			detailQuery := `
-				INSERT INTO purchase_details (
-					purchase_id, product_id, quantity, discount, price, subtotal, total
+				INSERT INTO purchase_order_details (
+					purchase_order_id, product_id, quantity, discount_method, discount, price, subtotal, total
 				) VALUES (
-					:purchase_id, :product_id, :quantity, :discount, :price, :subtotal, :total
+					:purchase_order_id, :product_id, :quantity, :discount_method, :discount, :price, :subtotal, :total
 				)
 			`
 			_, err = tx.NamedExec(detailQuery, detail)
@@ -234,6 +234,7 @@ func (r *PurchaseRepository) UpdatePurchase(purchase *domain.Purchases, details 
 					purchase_id = :purchase_id,
 					product_id = :product_id,
 					quantity = :quantity,
+					discount_method = :discount_method,
 					discount = :discount,
 					price = :price,
 					subtotal = :subtotal,

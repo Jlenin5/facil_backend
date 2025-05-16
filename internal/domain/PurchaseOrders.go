@@ -39,6 +39,7 @@ type PurchaseOrderDetails struct {
 	Product           *ProductReducedData `json:"product"`
 	Quantity          float64             `db:"quantity" json:"quantity"`
 	Price             float64             `db:"price" json:"price"`
+	Discount_Method   uint8               `db:"discount_method" json:"discount_method"`
 	Discount          NullFloat           `db:"discount" json:"discount"`
 	Subtotal          float64             `db:"subtotal" json:"subtotal"`
 	Total             float64             `db:"total" json:"total"`
