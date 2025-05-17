@@ -285,7 +285,7 @@ func (r *SaleRepository) GetSaleByBill(bill string) (*domain.Sales, error) {
 func (r *SaleRepository) GetLastSaleBill(document_type string) (string, error) {
 	var lastReference string
 
-	query := querySelectSale("s.document_type=$1 ORDER BY s.id DESC LIMIT 1")
+	query := "SELECT bill FROM sales WHERE document_type=$1 ORDER BY id DESC LIMIT 1"
 	err := r.db.Get(&lastReference, query, document_type)
 	if err != nil {
 		// Si no hay registros, devuelve cadena vacía
@@ -323,7 +323,7 @@ func querySelectSale(whereClause string) string {
 	query := fmt.Sprintf(`
 		SELECT
 			s.id, s.document_type, s.series, s.number, s.bill, s.warehouse_id, s.customer_id, s.currency_id, s.user_id, s.issue_date, s.exchange_rate, s.discount, s.subtotal, s.total, s.total_paid, s.change, s.sale_status, s.payment_method_id, s.sale_order_id, s.tax_identification, s.retention, s.perception,
-			c.id AS "customer.id", c.first_name AS "customer.first_name", c.second_name AS "customer.second_name", c.third_name AS "customer.third_name", c.surname AS "customer.surname", c.second_surname AS "customer.second_surname", c.company_name AS "customer.company_name", c.document_number AS "customer.document_number",
+			c.id AS "customer.id", c.first_name AS "customer.first_name", c.second_name AS "customer.second_name", c.third_name AS "customer.third_name", c.surname AS "customer.surname", c.second_surname AS "customer.second_surname", c.company_name AS "customer.company_name", c.document_number AS "customer.document_number", COALESCE(c.phone, '') AS "customer.phone", COALESCE(c.address, '') AS "customer.address",
 			u.id AS "user.id", u.employee_id AS "user.employee_id",
 			cu.id AS "currency.id", cu.name AS "currency.name", cu.code AS "currency.code", cu.symbol AS "currency.symbol",
 			e.id AS "user.employee.id", e.first_name AS "user.employee.first_name", e.second_name AS "user.employee.second_name", e.third_name AS "user.employee.third_name", e.surname AS "user.employee.surname", e.second_surname AS "user.employee.second_surname",

@@ -25,6 +25,8 @@ type CustomerReducedData struct {
 	Second_Surname  NullString `json:"second_surname"`
 	Company_Name    NullString `json:"company_name"`
 	Document_Number string     `json:"document_number"`
+	Address         NullString `db:"address" json:"address"`
+	Phone           NullString `json:"phone"`
 }
 
 type CurrencyReducedData struct {

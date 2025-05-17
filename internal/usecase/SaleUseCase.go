@@ -2,8 +2,8 @@ package usecase
 
 import (
 	"fmt"
-	_"strconv"
-	_"strings"
+	"strconv"
+	"strings"
 
 	"github.com/Jlenin5/facil_backend/internal/domain"
 	"github.com/Jlenin5/facil_backend/internal/repository"
@@ -17,33 +17,39 @@ func NewSaleUseCase(SaleRepo *repository.SaleRepository) *SaleUseCase {
 	return &SaleUseCase{SaleRepo: SaleRepo}
 }
 
+func ptrInt64(i int64) *int64 {
+	return &i
+}
 // Crear una venta junto con sus detalles
 func (uc *SaleUseCase) CreateSale(sale *domain.Sales, details []domain.SaleDetails) error {
 	// Generar comprobante si no viene en la solicitud
-	// if sale.Bill == "" {
-	// 	ref, err := uc.generateBill(sale.Document_Type)
-	// 	if err != nil {
-	// 		return err
-	// 	}
+	if *sale.Bill.String == "" {
+		ref, err := uc.generateBill(sale.Document_Type)
+		if err != nil {
+			return err
+		}
 
-	// 	var document string
-	// 	if sale.Document_Type == "ticket" {
-	// 		document = "B001"
-	// 	} else {
-	// 		document = "F001"
-	// 	}
+		var document string
+		if sale.Document_Type == "ticket" {
+			document = "B001"
+		} else {
+			document = "F001"
+		}
 
-	// 	numStr := strings.TrimPrefix(ref, fmt.Sprintf("%s-", document))
-	// 	num, err := strconv.Atoi(numStr)
-	// 	if err != nil {
-	// 		fmt.Println("Error al convertir a número:", err)
-	// 		return nil
-	// 	}
+		numStr := strings.TrimPrefix(ref, fmt.Sprintf("%s-", document))
+		num, err := strconv.Atoi(numStr)
+		if err != nil {
+			fmt.Println("Error al convertir a número:", err)
+			return nil
+		}
 
-	// 	sale.Series = document
-	// 	sale.Number = num
-	// 	sale.Bill = ref
-	// }
+		*sale.Series.String = document
+		sale.Number = domain.NullInt{
+			Int:   ptrInt64(int64(num)),
+			Valid: true,
+		}
+		*sale.Bill.String = ref
+	}
 
 	if sale.Sale_Status == "" {
 		sale.Sale_Status = "issued"

@@ -204,7 +204,7 @@ func (h *SaleHandler) OpenPDF(w http.ResponseWriter, r *http.Request) {
 	// RUC
 	centerText(7, "ArialUnicode", "", "RUC: "+sale.Warehouse.Branch_Office.Company.Ruc, 12)
 	// Phone
-	centerText(7, "ArialUnicode", "", "Teléfono: "+*sale.Warehouse.Branch_Office.Company.Phone.String, 12)
+	centerText(7, "ArialUnicode", "", "Teléfono: +51 "+*sale.Warehouse.Branch_Office.Company.Phone.String, 12)
 	// Address
 	centerText(7, "ArialUnicode", "", sale.Warehouse.Branch_Office.Company.Address, 12)
 	// hr
@@ -223,8 +223,8 @@ func (h *SaleHandler) OpenPDF(w http.ResponseWriter, r *http.Request) {
 	centerText(7, "ArialUnicode", "", "Cliente: "+*sale.Customer.First_Name.String+" "+*sale.Customer.Surname.String, 12)
 	// Documento
 	centerText(7, "ArialUnicode", "", "Documento: "+sale.Customer.Document_Number, 12)
-	// Phonoe
-	centerText(7, "ArialUnicode", "", "Teléfono: "+sale.Customer.Document_Number, 12)
+	// Phone
+	centerText(7, "ArialUnicode", "", "Teléfono: +51 "+*sale.Customer.Phone.String, 12)
 	// hr
 	centerText(4, "Arial", "", "--------------------------------------------------------------------", 10)
 	// Título detalles de venta
@@ -233,38 +233,56 @@ func (h *SaleHandler) OpenPDF(w http.ResponseWriter, r *http.Request) {
 	centerText(4, "Arial", "", "--------------------------------------------------------------------", 10)
 	// Productos
 	for _, detail := range sale.SaleDetails {
+		documentType := ""
+		discountValue := "0"
+		if detail.Discount.Float != nil && *detail.Discount.Float != 0 {
+			if detail.Discount_Method == 0 {
+				documentType = "%"
+				discountValue = strconv.FormatFloat(*detail.Discount.Float, 'f', 2, 64)
+			} else {
+				documentType = sale.Currency.Symbol
+				discountValue = strconv.Itoa(int(*detail.Discount.Float)) // convierte a entero
+			}
+		} else {
+			// Si no hay descuento o es cero, definir el símbolo correctamente
+			if detail.Discount_Method == 0 {
+				documentType = "%"
+			} else {
+				documentType = sale.Currency.Symbol
+			}
+		}
 		centerText(6, "ArialUnicode", "", detail.Product_Name, 10)
 		pdf.SetX(5) // Ajusta la posición inicial
-		pdf.CellFormat(20, 6, strconv.FormatFloat(detail.Quantity, 'f', 2, 64), "0", 0, "C", false, 0, "")
-		pdf.CellFormat(25, 6, strconv.FormatFloat(detail.Price, 'f', 2, 64), "0", 0, "C", false, 0, "")
-		pdf.CellFormat(25, 6, strconv.FormatFloat(*detail.Discount.Float, 'f', 2, 64), "0", 0, "C", false, 0, "")
-		pdf.CellFormat(25, 6, strconv.FormatFloat(detail.Total, 'f', 2, 64), "0", 1, "C", false, 0, "")
+		pdf.CellFormat(20, 6, sale.Currency.Symbol + strconv.FormatFloat(detail.Quantity, 'f', 2, 64), "0", 0, "C", false, 0, "")
+		pdf.CellFormat(25, 6, sale.Currency.Symbol + strconv.FormatFloat(detail.Price, 'f', 2, 64), "0", 0, "C", false, 0, "")
+		pdf.CellFormat(25, 6, documentType + discountValue, "0", 0, "C", false, 0, "")
+		pdf.CellFormat(25, 6, sale.Currency.Symbol + strconv.FormatFloat(detail.Total, 'f', 2, 64), "0", 1, "C", false, 0, "")
 		pdf.Ln(4)
 	}
 	// hr
 	centerText(7, "Arial", "", "--------------------------------------------------------------------", 10)
 	// Subtotal
 	pdf.SetLeftMargin(57)
-	pdf.CellFormat(25, 6, "SUBTOTAL:     "+strconv.FormatFloat(sale.Subtotal, 'f', 2, 64), "0", 0, "C", false, 0, "")
+	pdf.CellFormat(25, 6, "SUBTOTAL:     "+sale.Currency.Symbol+strconv.FormatFloat(sale.Subtotal, 'f', 2, 64), "0", 0, "C", false, 0, "")
 	pdf.Ln(6)
 	pdf.SetLeftMargin(60)
 	// IGV
-	pdf.CellFormat(20, 6, "IGV(18%):     "+strconv.FormatFloat(sale.Total-sale.Subtotal, 'f', 2, 64), "0", 0, "C", false, 0, "")
+	pdf.CellFormat(20, 6, "IGV(18%):     "+sale.Currency.Symbol+strconv.FormatFloat(sale.Total-sale.Subtotal, 'f', 2, 64), "0", 0, "C", false, 0, "")
 	pdf.Ln(3)
 	// hr
 	centerText(7, "Arial", "", "--------------------------------------------------------------------", 10)
 	// Total
 	pdf.SetX(53)
-	pdf.CellFormat(25, 6, "TOTAL A PAGAR:     "+strconv.FormatFloat(sale.Total, 'f', 2, 64), "0", 0, "C", false, 0, "")
+	pdf.CellFormat(25, 6, "TOTAL A PAGAR:     "+sale.Currency.Symbol+strconv.FormatFloat(sale.Total, 'f', 2, 64), "0", 0, "C", false, 0, "")
 	pdf.Ln(6)
 	// Total
 	pdf.SetX(52)
-	pdf.CellFormat(25, 6, "TOTAL A PAGADO:     "+strconv.FormatFloat(sale.Total_Paid, 'f', 2, 64), "0", 0, "C", false, 0, "")
+	pdf.CellFormat(25, 6, "TOTAL A PAGADO:     "+sale.Currency.Symbol+strconv.FormatFloat(sale.Total_Paid, 'f', 2, 64), "0", 0, "C", false, 0, "")
 	pdf.Ln(6)
 	// Total
 	// Total
 	pdf.SetX(59)
-	pdf.CellFormat(25, 6, "VUELTO:     "+strconv.FormatFloat(sale.Change, 'f', 2, 64), "0", 0, "C", false, 0, "")
+	pdf.CellFormat(25, 6, "VUELTO:     "+sale.Currency.Symbol+strconv.FormatFloat(sale.Change, 'f', 2, 64), "0", 0, "C", false, 0, "")
 	pdf.Ln(20)
 	// Gracias por su compra
 	centerText(7, "ArialUnicode", "B", "Gracias por su compra", 12)
