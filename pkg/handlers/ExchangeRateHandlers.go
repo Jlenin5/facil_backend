@@ -7,6 +7,7 @@ import (
 
 	"github.com/Jlenin5/facil_backend/internal/domain"
 	"github.com/Jlenin5/facil_backend/internal/usecase"
+	"github.com/Jlenin5/facil_backend/pkg/middleware"
 	"github.com/gorilla/mux"
 )
 
@@ -19,11 +20,52 @@ func NewExchangeRateHandler(ExchangeRateUC *usecase.ExchangeRateUseCase) *Exchan
 }
 
 func (h *ExchangeRateHandler) CreateExchangeRate(w http.ResponseWriter, r *http.Request) {
-	var exchangeRate domain.ExchangeRates
-	err := json.NewDecoder(r.Body).Decode(&exchangeRate) // Decodificar el cuerpo de la solicitud JSON
+	// Obtener los datos del usuario del contexto
+	userData, ok := r.Context().Value(middleware.UserContextKey).(map[string]interface{})
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Validar user_id del usuario autenticado
+	userIDRaw, exists := userData["id"]
+	if !exists {
+		http.Error(w, "User ID not found", http.StatusBadRequest)
+		return
+	}
+
+	userIDFloat, ok := userIDRaw.(float64)
+	if !ok {
+		http.Error(w, "Invalid user id", http.StatusBadRequest)
+		return
+	}
+
+	// Struct auxiliar para capturar el JSON que viene desde el frontend
+	var input struct {
+		Base_Currency_Id   int    `json:"base_currency_id"`
+		Target_Currency_Id int    `json:"target_currency_id"`
+		Exchange_Rate      string `json:"exchange_rate"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
 		http.Error(w, "Invalid input", http.StatusBadRequest)
 		return
+	}
+
+	// Convertir Exchange_Rate string a float64
+	exchangeRateValue, err := strconv.ParseFloat(input.Exchange_Rate, 64)
+	if err != nil {
+		http.Error(w, "Invalid exchange rate format", http.StatusBadRequest)
+		return
+	}
+
+	// Armar la entidad real
+	exchangeRate := domain.ExchangeRates{
+		Base_Currency_Id:   input.Base_Currency_Id,
+		Target_Currency_Id: input.Target_Currency_Id,
+		Exchange_Rate:      exchangeRateValue,
+		Created_By:         int(userIDFloat),
 	}
 
 	// Llama al caso de uso para crear una nueva marca
@@ -66,6 +108,9 @@ func (h *ExchangeRateHandler) GetExchangeRateById(w http.ResponseWriter, r *http
 	json.NewEncoder(w).Encode(exchangeRate)
 }
 
+func ptrInt64(i int64) *int64 {
+	return &i
+}
 func (h *ExchangeRateHandler) UpdateExchangeRate(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"]) // Obtén el ID desde los parámetros de la ruta
@@ -74,12 +119,56 @@ func (h *ExchangeRateHandler) UpdateExchangeRate(w http.ResponseWriter, r *http.
 		return
 	}
 
-	var exchangeRate domain.ExchangeRates
-	err = json.NewDecoder(r.Body).Decode(&exchangeRate) // Decodifica el cuerpo de la solicitud
-	if err != nil {
-		http.Error(w, "Invalid input format", http.StatusBadRequest)
+	// Obtener los datos del usuario del contexto
+	userData, ok := r.Context().Value(middleware.UserContextKey).(map[string]interface{})
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
+
+	// Validar user_id del usuario autenticado
+	userIDRaw, exists := userData["id"]
+	if !exists {
+		http.Error(w, "User ID not found", http.StatusBadRequest)
+		return
+	}
+
+	userIDFloat, ok := userIDRaw.(float64)
+	if !ok {
+		http.Error(w, "Invalid user id", http.StatusBadRequest)
+		return
+	}
+
+	userID := int64(userIDFloat)
+
+	// Struct auxiliar para capturar el JSON que viene desde el frontend
+	var input struct {
+		Base_Currency_Id   int    `json:"base_currency_id"`
+		Target_Currency_Id int    `json:"target_currency_id"`
+		Exchange_Rate      string `json:"exchange_rate"`
+	}
+
+	err = json.NewDecoder(r.Body).Decode(&input)
+	if err != nil {
+		http.Error(w, "Invalid input", http.StatusBadRequest)
+		return
+	}
+
+	// Convertir Exchange_Rate string a float64
+	exchangeRateValue, err := strconv.ParseFloat(input.Exchange_Rate, 64)
+	if err != nil {
+		http.Error(w, "Invalid exchange rate format", http.StatusBadRequest)
+		return
+	}
+
+	// Armar la entidad real
+	exchangeRate := domain.ExchangeRates{
+		Base_Currency_Id:   input.Base_Currency_Id,
+		Target_Currency_Id: input.Target_Currency_Id,
+		Exchange_Rate:      exchangeRateValue,
+		Updated_By:         domain.NullInt{Int: ptrInt64(userID), Valid: true},
+	}
+
 
 	exchangeRate.Id = id
 
