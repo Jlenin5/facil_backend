@@ -11,6 +11,7 @@ import (
 
 type AuthRepository interface {
 	FindUserByTypeChar(typeChar string, email string) (*domain.Users, error)
+	CreateUser(user *domain.Users) (*domain.Users, error)
 }
 
 type DauthRepository struct {
@@ -41,11 +42,8 @@ func querySelectUser(whereClause string) string {
 			u.id, u.company_id, u.password, u.role_id, u.username, u.employee_id, 
 			u.avatar, u.email, u.settings, u.shortcuts, u.status,
 			COALESCE(c.id, 0) AS "company.id", COALESCE(c.name, '') AS "company.name",
-			r.id AS "role.id", r.name AS "role.name", r.description AS "role.description",
-			e.id AS "employee.id", e.first_name AS "employee.first_name", 
-			e.second_name AS "employee.second_name", e.third_name AS "employee.third_name", 
-			e.surname AS "employee.surname", e.second_surname AS "employee.second_surname",
-			e.document_number AS "employee.document_number", e.warehouse_id AS "employee.warehouse_id", e.status AS "employee.status",
+			COALESCE(r.id, 0) AS "role.id", COALESCE(r.name, '') AS "role.name", COALESCE(r.description, '') AS "role.description",
+			COALESCE(e.id, 0) AS "employee.id", COALESCE(e.first_name, '') AS "employee.first_name", COALESCE(e.second_name, '') AS "employee.second_name", COALESCE(e.third_name, '') AS "employee.third_name", COALESCE(e.surname, '') AS "employee.surname", COALESCE(e.second_surname, '') AS "employee.second_surname", COALESCE(e.document_number, '') AS "employee.document_number", COALESCE(e.job_position_id, 0) AS "employee.job_position_id", COALESCE(e.status, B'0') AS "employee.status",
 			COALESCE(sub.id, 0) AS "subscription.id", COALESCE(sub.plan_id, 0) AS "subscription.plan_id", COALESCE(sub.company_id, 0) AS "subscription.company_id", COALESCE(sub.start_date, '1970-01-01') AS "subscription.start_date", COALESCE(sub.end_date, '1970-01-01') AS "subscription.end_date", COALESCE(sub.status, '') AS "subscription.status",
 			COALESCE(p.id, 0) AS "subscription.plan.id", COALESCE(p.title, '') AS "subscription.plan.title", COALESCE(p.price, 0) AS "subscription.plan.price", COALESCE(p.max_branch_offices, 0) AS "subscription.plan.max_branch_offices", COALESCE(p.max_warehouses, 0) AS "subscription.plan.max_warehouses", COALESCE(p.max_purchases, 0) AS "subscription.plan.max_purchases", COALESCE(p.max_users, 0) AS "subscription.plan.max_users", COALESCE(p.max_products, 0) AS "subscription.plan.max_products", COALESCE(p.max_services, 0) AS "subscription.plan.max_services", COALESCE(p.max_documents, 0) AS "subscription.plan.max_documents", COALESCE(p.status, CAST(1 AS BIT)) AS "subscription.plan.status"
 		FROM users u
@@ -60,4 +58,18 @@ func querySelectUser(whereClause string) string {
 	`, whereClause)
 	
 	return query
+}
+
+func (r *DauthRepository) CreateUser(user *domain.Users) (*domain.Users, error) {
+	query := `
+		INSERT INTO users (username, email, password)
+		VALUES ($1, $2, $3)
+		RETURNING id, username, email, password, status, created_at
+	`
+	var created domain.Users
+	err := r.db.QueryRowx(query, user.Username, user.Email, user.Password).StructScan(&created)
+	if err != nil {
+		return nil, err
+	}
+	return &created, nil
 }

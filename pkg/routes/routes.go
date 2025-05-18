@@ -19,8 +19,9 @@ func AccountRoutes(router *mux.Router, accountUC *usecase.AccountUseCase) {
 // auth
 func AuthRoutes(router *mux.Router, authUC *usecase.DauthUseCase) {
 	handler := handlers.NewAuthHandler(authUC)
-	router.HandleFunc("/sign-in", handler.Login).Methods("POST")
+	router.HandleFunc("/sign-in", handler.SignIn).Methods("POST")
 	router.HandleFunc("/sign-in-with-token", handler.ValidateRefreshToken).Methods("GET")
+	router.HandleFunc("/sign-up", handler.SignUp).Methods("POST")
 }
 
 // branch offices

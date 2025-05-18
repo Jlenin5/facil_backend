@@ -15,7 +15,7 @@ func NewAuthHandler(authUC *usecase.DauthUseCase) *AuthHandler {
 	return &AuthHandler{AuthUC: authUC}
 }
 
-func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
+func (h *AuthHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
@@ -29,6 +29,28 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	response, err := h.AuthUC.SignIn(body.Email, body.Password)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+func (h *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Username string `json:"username"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		http.Error(w, "Datos inválidos", http.StatusBadRequest)
+		return
+	}
+
+	response, err := h.AuthUC.SignUp(input.Username, input.Email, input.Password)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 

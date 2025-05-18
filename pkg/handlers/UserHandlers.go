@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -35,22 +34,6 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	user.Password = string(hashedPassword) // Actualiza el campo password con la versión encriptada
-
-	// Convertir settings a JSON string
-	settingsJSON, err := json.Marshal(user.Settings)
-	if err != nil {
-		http.Error(w, "Failed to process settings", http.StatusInternalServerError)
-		return
-	}
-	user.Settings = string(settingsJSON) // Convertir settings a formato string antes de guardar
-
-	// Convertir shortcuts a JSON string
-	shortcutsJSON, err := json.Marshal(user.Shortcuts)
-	if err != nil {
-		http.Error(w, "Failed to process shortcuts", http.StatusInternalServerError)
-		return
-	}
-	user.Shortcuts = string(shortcutsJSON) // Convertir shortcuts a formato string antes de guardar
 
 	// Llama al caso de uso para crear un nuevo usuario
 	err = h.UserUC.CreateUser(&user)
@@ -134,22 +117,6 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	user.Password = string(hashedPassword) // Actualiza el campo password con la versión encriptada
 
-	// Convertir settings a JSON string
-	settingsJSON, err := json.Marshal(user.Settings)
-	if err != nil {
-		http.Error(w, "Failed to process settings", http.StatusInternalServerError)
-		return
-	}
-	user.Settings = string(settingsJSON) // Convertir settings a formato string antes de guardar
-
-	// Convertir shortcuts a JSON string
-	shortcutsJSON, err := json.Marshal(user.Shortcuts)
-	if err != nil {
-		http.Error(w, "Failed to process shortcuts", http.StatusInternalServerError)
-		return
-	}
-	user.Shortcuts = string(shortcutsJSON) // Convertir shortcuts a formato string antes de guardar
-
 	user.Id = id // Aseguramos que el ID del usuario coincide
 	err = h.UserUC.UpdateUser(&user)
 	if err != nil {
@@ -201,25 +168,8 @@ func (h *UserHandler) DeleteUsersByIds(w http.ResponseWriter, r *http.Request) {
 
 // Función auxiliar para transformar un usuario en la estructura deseada
 func transformUser(user *domain.Users) (map[string]interface{}, error) {
-	// Convertir settings
-	settingsStr, ok := user.Settings.([]uint8)
-	if !ok {
-		return nil, fmt.Errorf("failed to parse settings")
-	}
-	var settings map[string]interface{}
-	if err := json.Unmarshal(settingsStr, &settings); err != nil {
-		return nil, fmt.Errorf("failed to decode settings")
-	}
-
-	// Convertir shortcuts
-	shortcutsStr, ok := user.Shortcuts.([]uint8)
-	if !ok {
-		return nil, fmt.Errorf("failed to parse shortcuts")
-	}
-	var shortcuts []string
-	if err := json.Unmarshal(shortcutsStr, &shortcuts); err != nil {
-		return nil, fmt.Errorf("failed to decode shortcuts")
-	}
+	settings := user.Settings
+	shortcuts := user.Shortcuts
 
 	// Transformar company
 	var company map[string]interface{}
