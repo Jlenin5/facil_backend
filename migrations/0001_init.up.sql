@@ -196,8 +196,8 @@ CREATE TABLE users (
     employee_id INTEGER DEFAULT NULL,
     avatar VARCHAR(150),
     email VARCHAR(100) NOT NULL,
-    settings JSONB DEFAULT NULL, -- DEFAULT '{}'::jsonb
-    shortcuts JSONB DEFAULT NULL, -- DEFAULT '[]'::jsonb
+    settings JSONB DEFAULT '{}'::jsonb,
+    shortcuts JSONB DEFAULT '[]'::jsonb,
     status BIT(1) NOT NULL DEFAULT B'1', -- Usar BIT(1) con valor predeterminado de 1
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

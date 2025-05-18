@@ -23,9 +23,9 @@ type ExchangeRates struct {
 	Target_Currency_Id int                  `db:"target_currency_id" json:"target_currency_id"`
 	Target_Currency    *CurrencyReducedData `json:"target_currency"`
 	Exchange_Rate      float64              `db:"exchange_rate" json:"exchange_rate"`
-	Created_By      int                  `db:"created_by" json:"created_by"`
-	Updated_By      NullInt              `db:"updated_by" json:"updated_by"`
-	Created_at         time.Time            `db:"created_at" json:"-"`
+	Created_By         int                  `db:"created_by" json:"created_by"`
+	Updated_By         NullInt              `db:"updated_by" json:"updated_by"`
+	Created_at         time.Time            `db:"created_at" json:"created_at"`
 	Updated_at         time.Time            `db:"updated_at" json:"-"`
 	Deleted_at         NullTime             `db:"deleted_at" json:"-"`
 }

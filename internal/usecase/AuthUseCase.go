@@ -14,6 +14,7 @@ import (
 
 type AuthUseCase interface {
 	SignIn(email, password string) (*domain.LoginResponse, error)
+	SignUp(username, email, password string) (*domain.LoginResponse, error)
 	ValidateRefreshToken(refreshToken string) (*domain.Users, error)
 }
 
@@ -48,6 +49,56 @@ func (uc *DauthUseCase) SignIn(email, password string) (*domain.LoginResponse, e
 	}
 
 	// Generar el token con todos los datos del usuario
+	token, err := uc.generateToken(transformedUser)
+	if err != nil {
+		return nil, errors.New("no se pudo generar el token")
+	}
+
+	return &domain.LoginResponse{
+		User:  transformedUser,
+		Token: token,
+	}, nil
+}
+
+func (uc *DauthUseCase) SignUp(username, email, password string) (*domain.LoginResponse, error) {
+	// Verificar si ya existe un usuario con el mismo correo electrónico
+	existingUser, err := uc.authRepo.FindUserByTypeChar("email", email)
+	if err == nil && existingUser != nil {
+		return nil, errors.New("el correo electrónico ya está registrado")
+	}
+
+	// Verificar si ya existe un usuario con el mismo username
+	existingUser, err = uc.authRepo.FindUserByTypeChar("username", username)
+	if err == nil && existingUser != nil {
+		return nil, errors.New("el nombre de usuario ya está en uso")
+	}
+
+	// Hashear la contraseña
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, errors.New("no se pudo hashear la contraseña")
+	}
+
+	// Crear el nuevo usuario
+	newUser := &domain.Users{
+		Username: username,
+		Email:    email,
+		Password: string(hashedPassword),
+	}
+
+	// Guardar el nuevo usuario en la base de datos
+	createdUser, err := uc.authRepo.CreateUser(newUser)
+	if err != nil {
+		return nil, errors.New("no se pudo crear el usuario: " + err.Error())
+	}
+
+	// Transformar usuario para token
+	transformedUser, err := transformUser(createdUser)
+	if err != nil {
+		return nil, err
+	}
+
+	// Generar token
 	token, err := uc.generateToken(transformedUser)
 	if err != nil {
 		return nil, errors.New("no se pudo generar el token")
@@ -164,12 +215,23 @@ func transformUser(user *domain.Users) (map[string]interface{}, error) {
 }
 
 func parseJSON(data interface{}) (interface{}, error) {
-	if bytes, ok := data.([]uint8); ok {
+	switch v := data.(type) {
+	case nil:
+		return nil, nil
+	case []byte:
 		var result interface{}
-		if err := json.Unmarshal(bytes, &result); err != nil {
+		if err := json.Unmarshal(v, &result); err != nil {
 			return nil, fmt.Errorf("error al decodificar JSON: %v", err)
 		}
 		return result, nil
+	case string:
+		var result interface{}
+		if err := json.Unmarshal([]byte(v), &result); err != nil {
+			return nil, fmt.Errorf("error al decodificar string JSON: %v", err)
+		}
+		return result, nil
+	default:
+		// Ya es un objeto Go (por ejemplo, un map o slice)
+		return v, nil
 	}
-	return nil, fmt.Errorf("tipo de datos no compatible")
 }

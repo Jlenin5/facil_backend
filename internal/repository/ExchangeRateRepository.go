@@ -39,7 +39,7 @@ func (r *ExchangeRateRepository) GetAllExchangeRates() ([]domain.ExchangeRates, 
 	var exchangeRates []domain.ExchangeRates
 	query := `
 		SELECT
-			er.id, er.base_currency_id, er.target_currency_id, er.exchange_rate, er.created_by, er.updated_by,
+			er.id, er.base_currency_id, er.target_currency_id, er.exchange_rate, er.created_by, er.updated_by, er.created_at,
 			c.id AS "base_currency.id", c.name AS "base_currency.name", c.code AS "base_currency.code", c.symbol AS "base_currency.symbol",
 			cu.id AS "target_currency.id", cu.name AS "target_currency.name", cu.code AS "target_currency.code", cu.symbol AS "target_currency.symbol"
 		FROM exchange_rates er
@@ -61,20 +61,12 @@ func (r *ExchangeRateRepository) GetExchangeRateById(exchangeRateId int) (*domai
 	var exchangeRates domain.ExchangeRates
 	query := `
 		SELECT
-			er.id, er.base_currency_id, er.target_currency_id, er.exchange_rate, er.created_by, er.updated_by,
+			er.id, er.base_currency_id, er.target_currency_id, er.exchange_rate, er.created_by, er.updated_by, er.created_at,
 			c.id AS "base_currency.id", c.name AS "base_currency.name", c.code AS "base_currency.code", c.symbol AS "base_currency.symbol",
-			cu.id AS "target_currency.id", cu.name AS "target_currency.name", cu.code AS "target_currency.code", cu.symbol AS "target_currency.symbol",
-			u.id AS "created_by.id", u.employee_id AS "created_by.employee_id",
-			e.id AS "created_by.employee.id", e.first_name AS "created_by.employee.first_name", e.second_name AS "created_by.employee.second_name", e.third_name AS "created_by.employee.third_name", e.surname AS "created_by.employee.surname", e.second_surname AS "created_by.employee.second_surname",
-			COALESCE(us.id, 0) AS "updated_by.id", us.employee_id AS "updated_by.employee_id",
-			COALESCE(em.id, 0) AS "updated_by.employee.id", COALESCE(em.first_name, '') AS "updated_by.employee.first_name", COALESCE(em.second_name, '') AS "updated_by.employee.second_name", COALESCE(em.third_name, '') AS "updated_by.employee.third_name", COALESCE(em.surname, '') AS "updated_by.employee.surname", COALESCE(em.second_surname, '') AS "updated_by.employee.second_surname"
+			cu.id AS "target_currency.id", cu.name AS "target_currency.name", cu.code AS "target_currency.code", cu.symbol AS "target_currency.symbol"
 		FROM exchange_rates er
 		LEFT JOIN currencies c ON er.base_currency_id=c.id
 		LEFT JOIN currencies cu ON er.target_currency_id=cu.id
-		LEFT JOIN users u ON er.created_by=u.id
-		LEFT JOIN employees e ON u.employee_id=e.id
-		LEFT JOIN users us ON er.updated_by=us.id
-		LEFT JOIN employees em ON us.employee_id=em.id
 		WHERE er.id = $1 AND er.deleted_at IS NULL
 		ORDER BY er.id DESC
 	`
@@ -89,26 +81,19 @@ func (r *ExchangeRateRepository) GetExchangeRateById(exchangeRateId int) (*domai
 
 // Actualizar un tipo de cambio
 func (r *ExchangeRateRepository) UpdateExchangeRate(exchangeRate *domain.ExchangeRates) error {
-	tx, err := r.db.Beginx()
-	if err != nil {
-		fmt.Printf("Error iniciando transacción: %v\n", err)
-		return err
-	}
 	exchangeRateQuery := `
 		UPDATE exchange_rates
 		SET
-			base_currency_id = :base_currency_id,
-			target_currency_id = :target_currency_id,
-			exchange_rate = :exchange_rate,
-			created_by = :created_by,
-			updated_by = :updated_by,
+			base_currency_id = $1,
+			target_currency_id = $2,
+			exchange_rate = $3,
+			updated_by = $4,
 			updated_at = NOW()
-		WHERE id = :id
+		WHERE id = $5
 	`
-	_, err = tx.NamedExec(exchangeRateQuery, exchangeRate)
+	_, err := r.db.Exec(exchangeRateQuery, exchangeRate.Base_Currency_Id, exchangeRate.Target_Currency_Id, exchangeRate.Exchange_Rate, exchangeRate.Updated_By, exchangeRate.Id)
 	if err != nil {
-		fmt.Printf("Error actualizando el tipo de cambio: %v\n", err)
-		tx.Rollback()
+		fmt.Printf("Error actualizando el tipo de cambio con Id %d: %v\n", exchangeRate.Id, err)
 		return err
 	}
 	return nil

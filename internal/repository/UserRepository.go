@@ -42,10 +42,8 @@ func (r *UserRepository) GetAllUsers() ([]domain.Users, error) {
 		SELECT 
 			u.id, u.company_id, u.password, u.role_id, u.username, u.employee_id, u.avatar, u.email, u.settings, u.shortcuts, u.status,
 			COALESCE(c.id, 0) AS "company.id", COALESCE(c.name, '') AS "company.name",
-			r.id AS "role.id", r.name AS "role.name", r.description AS "role.description",
-			e.id AS "employee.id", e.first_name AS "employee.first_name", e.second_name AS "employee.second_name",
-			e.third_name AS "employee.third_name", e.surname AS "employee.surname", e.second_surname AS "employee.second_surname",
-			e.document_number AS "employee.document_number", e.job_position_id AS "employee.job_position_id", e.status AS "employee.status"
+			COALESCE(r.id, 0) AS "role.id", COALESCE(r.name, '') AS "role.name", COALESCE(r.description, '') AS "role.description",
+			COALESCE(e.id, 0) AS "employee.id", COALESCE(e.first_name, '') AS "employee.first_name", COALESCE(e.second_name, '') AS "employee.second_name", COALESCE(e.third_name, '') AS "employee.third_name", COALESCE(e.surname, '') AS "employee.surname", COALESCE(e.second_surname, '') AS "employee.second_surname", COALESCE(e.document_number, '') AS "employee.document_number", COALESCE(e.job_position_id, 0) AS "employee.job_position_id", COALESCE(e.status, B'0') AS "employee.status"
 		FROM users u
 		LEFT JOIN companies c ON u.company_id = c.id
 		LEFT JOIN roles r ON u.role_id = r.id
@@ -68,10 +66,8 @@ func (r *UserRepository) GetUserById(userId int) (*domain.Users, error) {
 		SELECT 
 			u.id, u.company_id, u.password, u.role_id, u.username, u.employee_id, u.avatar, u.email, u.settings, u.shortcuts, u.status,
 			COALESCE(c.id, 0) AS "company.id", COALESCE(c.name, '') AS "company.name",
-			r.id AS "role.id", r.name AS "role.name", r.description AS "role.description",
-			e.id AS "employee.id", e.first_name AS "employee.first_name", e.second_name AS "employee.second_name",
-			e.third_name AS "employee.third_name", e.surname AS "employee.surname", e.second_surname AS "employee.second_surname",
-			e.document_number AS "employee.document_number", e.job_position_id AS "employee.job_position_id", e.status AS "employee.status"
+			COALESCE(r.id, 0) AS "role.id", COALESCE(r.name, '') AS "role.name", COALESCE(r.description, '') AS "role.description",
+			COALESCE(e.id, 0) AS "employee.id", COALESCE(e.first_name, '') AS "employee.first_name", COALESCE(e.second_name, '') AS "employee.second_name", COALESCE(e.third_name, '') AS "employee.third_name", COALESCE(e.surname, '') AS "employee.surname", COALESCE(e.second_surname, '') AS "employee.second_surname", COALESCE(e.document_number, '') AS "employee.document_number", COALESCE(e.job_position_id, 0) AS "employee.job_position_id", COALESCE(e.status, B'0') AS "employee.status"
 		FROM users u
 		LEFT JOIN companies c ON u.company_id = c.id
 		LEFT JOIN roles r ON u.role_id = r.id
