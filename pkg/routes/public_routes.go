@@ -12,6 +12,7 @@ func PublicRoutes(router *mux.Router, db *sqlx.DB) {
 	saleUC := usecase.NewSaleUseCase(repository.NewSaleRepository(db))
 	saleHandler := handlers.NewSaleHandler(saleUC)
 	router.HandleFunc("/sales/pdf/document-{bill}", saleHandler.OpenPDF).Methods("GET")
+	router.HandleFunc("/sales/pdfA4/document-{bill}", saleHandler.OpenPDFA4).Methods("GET")
 	router.HandleFunc("/sales/export-excel", saleHandler.ExportExcel).Methods("POST")
 
 	productUC := usecase.NewProductUseCase(repository.NewProductRepository(db))

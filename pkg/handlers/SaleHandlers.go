@@ -253,7 +253,7 @@ func (h *SaleHandler) OpenPDF(w http.ResponseWriter, r *http.Request) {
 		}
 		centerText(6, "ArialUnicode", "", detail.Product_Name, 10)
 		pdf.SetX(5) // Ajusta la posición inicial
-		pdf.CellFormat(20, 6, sale.Currency.Symbol + strconv.FormatFloat(detail.Quantity, 'f', 2, 64), "0", 0, "C", false, 0, "")
+		pdf.CellFormat(20, 6, strconv.FormatFloat(detail.Quantity, 'f', 2, 64), "0", 0, "C", false, 0, "")
 		pdf.CellFormat(25, 6, sale.Currency.Symbol + strconv.FormatFloat(detail.Price, 'f', 2, 64), "0", 0, "C", false, 0, "")
 		pdf.CellFormat(25, 6, documentType + discountValue, "0", 0, "C", false, 0, "")
 		pdf.CellFormat(25, 6, sale.Currency.Symbol + strconv.FormatFloat(detail.Total, 'f', 2, 64), "0", 1, "C", false, 0, "")
@@ -288,6 +288,174 @@ func (h *SaleHandler) OpenPDF(w http.ResponseWriter, r *http.Request) {
 	centerText(7, "ArialUnicode", "B", "Gracias por su compra", 12)
 
 	// Guardar el PDF en un buffer
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/pdf")
+	w.Header().Set("Content-Disposition", "inline; filename=document-"+*sale.Bill.String+".pdf")
+	pdf.Output(w)
+}
+
+func (h *SaleHandler) OpenPDFA4(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	bill := vars["bill"]
+
+	sale, err := h.SaleUC.GetSaleByBill(bill)
+	if err != nil {
+		http.Error(w, "Sale not found", http.StatusNotFound)
+		return
+	}
+
+	pdf := gofpdf.New("P", "mm", "A4", "")
+	pdf.AddPage()
+	pdf.AddUTF8Font("ArialUnicode", "", "uploads/fonts/Arial_Unicode/Arial-Unicode-Regular.ttf")
+	pdf.AddUTF8Font("ArialUnicode", "B", "uploads/fonts/Arial_Unicode/Arial-Unicode-Bold.ttf")
+
+	// Cargar imagen del logo (ajusta la ruta si es necesario)
+	pdf.ImageOptions("uploads/images/products/+++¡.png", 10, 10, 25, 0, false, gofpdf.ImageOptions{ImageType: "PNG"}, 0, "")
+
+	// Empresa (lado izquierdo superior)
+	pdf.SetFont("ArialUnicode", "B", 12)
+	pdf.SetXY(40, 10)
+	pdf.Cell(0, 6, sale.Warehouse.Branch_Office.Company.Name)
+	pdf.Ln(6)
+	pdf.SetX(40)
+	pdf.SetFont("ArialUnicode", "", 10)
+	pdf.Cell(0, 6, sale.Warehouse.Branch_Office.Company.Address)
+	pdf.Ln(5)
+	pdf.SetX(40)
+	pdf.Cell(0, 6, "+51 "+*sale.Warehouse.Branch_Office.Company.Phone.String)
+	pdf.Ln(5)
+	pdf.SetX(40)
+	pdf.Cell(0, 6, sale.Warehouse.Branch_Office.Company.Email)
+	pdf.Ln(10)
+
+	documentTypeG := ""
+	// Boleta (lado derecho)
+	if sale.Document_Type == "ticket" {
+		documentTypeG = "Boleta"
+	} else {
+		documentTypeG = "Factura"
+	}
+	pdf.SetXY(150, 10)
+	pdf.SetFont("ArialUnicode", "B", 12)
+	pdf.Cell(0, 6, documentTypeG+"  #"+*sale.Bill.String)
+	pdf.Ln(6)
+	pdf.SetX(150)
+	pdf.SetFont("ArialUnicode", "", 10)
+	pdf.Cell(0, 6, "Fecha: "+sale.Issue_Date.Format("2006/01/02"))
+	pdf.Ln(5)
+	pdf.SetX(150)
+	pdf.Cell(0, 6, "Usuario: "+sale.User.Employee.First_Name+" "+*sale.User.Employee.Surname.String)
+	pdf.Ln(15)
+
+	// Cliente
+	pdf.SetY(45)
+	pdf.SetFont("ArialUnicode", "B", 11)
+	pdf.Cell(0, 8, "Cliente")
+	pdf.Ln(8)
+	pdf.SetFont("ArialUnicode", "", 10)
+	fullName := *sale.Customer.First_Name.String + " " + *sale.Customer.Surname.String
+	pdf.Cell(0, 6, fullName)
+	pdf.Ln(5)
+	pdf.Cell(0, 6, *sale.Customer.Address.String)
+	pdf.Ln(5)
+	pdf.Cell(0, 6, "+51 "+*sale.Customer.Phone.String)
+	pdf.Ln(10)
+
+	// Tabla de productos
+	pdf.SetFont("ArialUnicode", "B", 10)
+	pdf.SetFillColor(230, 230, 230)
+	pdf.CellFormat(80, 8, "Producto", "1", 0, "", true, 0, "")
+	pdf.CellFormat(30, 8, "Precio U.", "1", 0, "C", true, 0, "")
+	pdf.CellFormat(25, 8, "Cantidad", "1", 0, "C", true, 0, "")
+	pdf.CellFormat(25, 8, "Descuento", "1", 0, "C", true, 0, "")
+	pdf.CellFormat(30, 8, "Total", "1", 1, "C", true, 0, "")
+
+	pdf.SetFont("ArialUnicode", "", 10)
+	for _, detail := range sale.SaleDetails {
+		documentType := ""
+		discountValue := "0"
+		if detail.Discount.Float != nil && *detail.Discount.Float != 0 {
+			if detail.Discount_Method == 0 {
+				documentType = "%"
+				discountValue = strconv.FormatFloat(*detail.Discount.Float, 'f', 2, 64)
+			} else {
+				documentType = sale.Currency.Symbol
+				discountValue = strconv.Itoa(int(*detail.Discount.Float)) // convierte a entero
+			}
+		} else {
+			// Si no hay descuento o es cero, definir el símbolo correctamente
+			if detail.Discount_Method == 0 {
+				documentType = "%"
+			} else {
+				documentType = sale.Currency.Symbol
+			}
+		}
+
+		// Guardar posición actual
+		x := pdf.GetX()
+		y := pdf.GetY()
+
+		// MultiCell para el nombre del producto (80 de ancho)
+		pdf.MultiCell(80, 8, detail.Product_Name, "1", "", false)
+
+		// Obtener altura total usada
+		newY := pdf.GetY()
+		rowHeight := newY - y
+
+		// Volver a la posición derecha del producto para seguir celdas
+		pdf.SetXY(x+80, y)
+
+		// Precio
+		pdf.CellFormat(30, rowHeight, fmt.Sprintf(sale.Currency.Symbol+" %.2f", detail.Price), "1", 0, "C", false, 0, "")
+		// Cantidad
+		pdf.CellFormat(25, rowHeight, fmt.Sprintf("%.0f", detail.Quantity), "1", 0, "C", false, 0, "")
+		// Descuento
+		pdf.CellFormat(25, rowHeight, documentType + discountValue, "1", 0, "C", false, 0, "")
+		// Total
+		pdf.CellFormat(30, rowHeight, fmt.Sprintf(sale.Currency.Symbol+" %.2f", detail.Total), "1", 1, "C", false, 0, "")
+	}
+
+	pdf.Ln(8)
+	// Descuento
+	pdf.SetX(130)
+	pdf.CellFormat(40, 8, "DESCUENTO:", "", 0, "R", false, 0, "")
+	pdf.CellFormat(30, 8, fmt.Sprintf(sale.Currency.Symbol+" %.2f", *sale.Discount.Float), "0", 1, "R", false, 0, "")
+	// Subtotal
+	pdf.SetX(130)
+	pdf.CellFormat(40, 8, "SUBTOTAL:", "", 0, "R", false, 0, "")
+	pdf.CellFormat(30, 8, fmt.Sprintf(sale.Currency.Symbol+" %.2f", sale.Subtotal), "0", 1, "R", false, 0, "")
+	// Impuesto
+	pdf.SetX(130)
+	pdf.CellFormat(40, 8, "IGV(18%):", "", 0, "R", false, 0, "")
+	pdf.CellFormat(30, 8, fmt.Sprintf(sale.Currency.Symbol+" %.2f", sale.Total-sale.Subtotal), "0", 1, "R", false, 0, "")
+	// Total a Pagar
+	pdf.SetX(130)
+	pdf.SetFont("ArialUnicode", "B", 11)
+	pdf.CellFormat(40, 8, "TOTAL:", "", 0, "R", false, 0, "")
+	pdf.CellFormat(30, 8, fmt.Sprintf(sale.Currency.Symbol+" %.2f", sale.Total), "0", 1, "R", false, 0, "")
+	// Total Pagado
+	pdf.SetX(130)
+	pdf.SetFont("ArialUnicode", "", 10)
+	pdf.CellFormat(40, 8, "TOTAL PAGADO:", "", 0, "R", false, 0, "")
+	pdf.CellFormat(30, 8, fmt.Sprintf(sale.Currency.Symbol+" %.2f", sale.Total_Paid), "0", 1, "R", false, 0, "")
+	// Cambio
+	pdf.SetX(130)
+	pdf.CellFormat(40, 8, "CAMBIO:", "", 0, "R", false, 0, "")
+	pdf.CellFormat(30, 8, fmt.Sprintf(sale.Currency.Symbol+" %.2f", sale.Change), "0", 1, "R", false, 0, "")
+
+	// Nota final
+	// pdf.Ln(15)
+	// pdf.SetFont("ArialUnicode", "", 10)
+	// pdf.SetTextColor(100, 100, 100)
+	// pdf.MultiCell(0, 6, "Por favor, pague en un plazo de 15 días. Gracias por su compra.", "", "C", false)
+
+	// Footer legal
+	pdf.Ln(10)
+	pdf.SetFont("ArialUnicode", "", 8)
+	pdf.SetTextColor(120, 120, 120)
+	pdf.MultiCell(0, 4, "Facil agradece su preferencia. Recuerde que este documento es válido como comprobante de venta. Todos los productos cuentan con garantía legal. Visite www.facil.com.pe para más información.", "", "C", false)
+
+	// Salida
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/pdf")
 	w.Header().Set("Content-Disposition", "inline; filename=document-"+*sale.Bill.String+".pdf")
