@@ -199,8 +199,9 @@ func PlanRoutes(router *mux.Router, planUC *usecase.PlanUseCase) {
 // projects
 func ProjectRoutes(router *mux.Router, dashboardUC *usecase.ProjectUseCase) {
 	handler := handlers.NewProjectHandler(dashboardUC)
-	router.HandleFunc("/dashboard-summary", handler.DashboardSummary).Methods("GET")
-	router.HandleFunc("/projects", handler.GetProjectData).Methods("GET")
+	// router.HandleFunc("/dashboard-summary", handler.DashboardSummary).Methods("GET")
+	router.HandleFunc("/project-dashboard/widgets", handler.GetDashboardWidgets).Methods("GET")
+	router.HandleFunc("/project-dashboard/projects", handler.GetDashboardProjects).Methods("GET")
 }
 
 // products

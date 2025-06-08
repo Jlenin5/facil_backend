@@ -15,8 +15,19 @@ func NewProjectHandler(ProjectUC *usecase.ProjectUseCase) *ProjectHandler {
 	return &ProjectHandler{ProjectUC: ProjectUC}
 }
 
-func (h *ProjectHandler) DashboardSummary(w http.ResponseWriter, r *http.Request) {
-	data, err := h.ProjectUC.DashboardSummary()
+// func (h *ProjectHandler) DashboardSummary(w http.ResponseWriter, r *http.Request) {
+// 	data, err := h.ProjectUC.DashboardSummary()
+// 	if err != nil {
+// 		http.Error(w, "Failed to fetch dashboard data", http.StatusInternalServerError)
+// 		return
+// 	}
+
+// 	w.Header().Set("Content-Type", "application/json")
+// 	json.NewEncoder(w).Encode(data)
+// }
+
+func (h *ProjectHandler) GetDashboardWidgets(w http.ResponseWriter, r *http.Request) {
+	data, err := h.ProjectUC.GetDashboardWidgets()
 	if err != nil {
 		http.Error(w, "Failed to fetch dashboard data", http.StatusInternalServerError)
 		return
@@ -26,8 +37,9 @@ func (h *ProjectHandler) DashboardSummary(w http.ResponseWriter, r *http.Request
 	json.NewEncoder(w).Encode(data)
 }
 
-func (h *ProjectHandler) GetProjectData(w http.ResponseWriter, r *http.Request) {
-	data, err := h.ProjectUC.GetProjectData()
+func (h *ProjectHandler) GetDashboardProjects(w http.ResponseWriter, r *http.Request) {
+	data, err := h.ProjectUC.GetDashboardProjects()
+
 	if err != nil {
 		http.Error(w, "Failed to fetch dashboard data", http.StatusInternalServerError)
 		return

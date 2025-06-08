@@ -1,3 +1,8 @@
+# Ignorar binario principal
 main.exe
+
+# Ignorar archivos de entorno
 .env
+
+# Ignorar logs de errores de compilación
 tmp/build-errors.log

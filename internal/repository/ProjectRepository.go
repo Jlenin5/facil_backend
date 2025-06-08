@@ -16,7 +16,7 @@ func NewProjectRepository(db *sqlx.DB) *ProjectRepository {
 }
 
 // Resumen del dashboard
-func (r *ProjectRepository) DashboardSummary() ([]domain.DashboardSummary, error) {
+/*unc (r *ProjectRepository) DashboardSummary() ([]domain.DashboardSummary, error) {
 	var summary domain.DashboardSummary
 
 	// Obtener total de ventas
@@ -50,60 +50,182 @@ func (r *ProjectRepository) DashboardSummary() ([]domain.DashboardSummary, error
 	}
 
 	return []domain.DashboardSummary{summary}, nil
-}
+}*/
 
-// Obtener resumen de órdenes de venta
-func (r *ProjectRepository) GetSaleOrders() (map[string]int, error) {
+// Obtener resumen de ventas
+func (r *ProjectRepository) GetSaleStatusSummary() (map[string]int, error) {
 	query := `
 		SELECT 
-			COUNT(*) FILTER (WHERE issue_date >= NOW() - INTERVAL '1 day') AS dy,
-			COUNT(*) FILTER (WHERE issue_date >= NOW()::date) AS dt,
-			COUNT(*) FILTER (WHERE issue_date >= NOW()::date + INTERVAL '1 day') AS dtm
-		FROM sale_orders
+			sale_status, 
+			COUNT(*) AS count
+		FROM sales
 		WHERE deleted_at IS NULL
+		GROUP BY sale_status
 	`
-	var counts struct {
-		DY  int `db:"dy"`
-		DT  int `db:"dt"`
-		DTM int `db:"dtm"`
-	}
-	err := r.db.Get(&counts, query)
+
+	rows, err := r.db.Queryx(query)
 	if err != nil {
-		return nil, fmt.Errorf("error obteniendo resumen de órdenes de venta: %v", err)
+		return nil, fmt.Errorf("error obteniendo resumen de estados de venta: %v", err)
+	}
+	defer rows.Close()
+
+	statusCounts := make(map[string]int)
+
+	for rows.Next() {
+		var status string
+		var count int
+		if err := rows.Scan(&status, &count); err != nil {
+			return nil, fmt.Errorf("error escaneando fila: %v", err)
+		}
+		statusCounts[status] = count
 	}
 
-	return map[string]int{
-		"DY":  counts.DY,
-		"DT":  counts.DT,
-		"DTM": counts.DTM,
-	}, nil
+	return statusCounts, nil
 }
 
-// Obtener resumen de órdenes de compra
-func (r *ProjectRepository) GetPurchaseOrders() (map[string]int, error) {
+// Obtener resumen de compras
+func (r *ProjectRepository) GetPurchaseStatusSummary() (map[string]int, error) {
 	query := `
 		SELECT 
-			COUNT(*) FILTER (WHERE issue_date >= NOW() - INTERVAL '1 day') AS dy,
-			COUNT(*) FILTER (WHERE issue_date >= NOW()::date) AS dt,
-			COUNT(*) FILTER (WHERE issue_date >= NOW()::date + INTERVAL '1 day') AS dtm
-		FROM purchase_orders
+			purchase_status, 
+			COUNT(*) AS count
+		FROM purchases
 		WHERE deleted_at IS NULL
+		GROUP BY purchase_status
 	`
-	var counts struct {
-		DY  int `db:"dy"`
-		DT  int `db:"dt"`
-		DTM int `db:"dtm"`
-	}
-	err := r.db.Get(&counts, query)
+	rows, err := r.db.Queryx(query)
 	if err != nil {
-		return nil, fmt.Errorf("error obteniendo resumen de órdenes de compra: %v", err)
+		return nil, fmt.Errorf("error obteniendo resumen de estados de compra: %v", err)
+	}
+	defer rows.Close()
+
+	statusCounts := make(map[string]int)
+
+	for rows.Next() {
+		var status string
+		var count int
+		if err := rows.Scan(&status, &count); err != nil {
+			return nil, fmt.Errorf("error escaneando fila: %v", err)
+		}
+		statusCounts[status] = count
 	}
 
-	return map[string]int{
-		"DY":  counts.DY,
-		"DT":  counts.DT,
-		"DTM": counts.DTM,
-	}, nil
+	return statusCounts, nil
+}
+
+// Obtener resumen de clientes
+func (r *ProjectRepository) GetCustomerStatusSummary() (map[string]int, error) {
+	query := `
+		SELECT 
+			document_type, 
+			COUNT(*) AS count
+		FROM customers
+		WHERE deleted_at IS NULL
+		GROUP BY document_type
+	`
+	rows, err := r.db.Queryx(query)
+	if err != nil {
+		return nil, fmt.Errorf("error obteniendo resumen de tipo de documento: %v", err)
+	}
+	defer rows.Close()
+
+	statusCounts := make(map[string]int)
+
+	for rows.Next() {
+		var status string
+		var count int
+		if err := rows.Scan(&status, &count); err != nil {
+			return nil, fmt.Errorf("error escaneando fila: %v", err)
+		}
+		statusCounts[status] = count
+	}
+
+	return statusCounts, nil
+}
+
+// Obtener resumen de suppliers
+func (r *ProjectRepository) GetSupplierStatusSummary() (map[string]int, error) {
+	query := `
+		SELECT 
+			CASE 
+				WHEN status = B'1' THEN 'active'
+				WHEN status = B'0' THEN 'inactive'
+				ELSE 'unknown'
+			END AS status_label,
+			COUNT(*) AS count
+		FROM suppliers
+		WHERE deleted_at IS NULL
+		GROUP BY status_label
+	`
+	rows, err := r.db.Queryx(query)
+	if err != nil {
+		return nil, fmt.Errorf("error obteniendo resumen de tipo de documento: %v", err)
+	}
+	defer rows.Close()
+
+	statusCounts := make(map[string]int)
+
+	for rows.Next() {
+		var status string
+		var count int
+		if err := rows.Scan(&status, &count); err != nil {
+			return nil, fmt.Errorf("error escaneando fila: %v", err)
+		}
+		statusCounts[status] = count
+	}
+
+	return statusCounts, nil
+}
+
+func (r *ProjectRepository) GetProductsBySalesAndPurchases() ([]domain.ProductFlowDay, error) {
+	query := `
+		WITH sales_agg AS (
+    SELECT
+        TO_CHAR(s.issue_date, 'Dy') AS weekday,
+        SUM(sd.quantity) FILTER (WHERE s.sale_status = 'paid')     AS sales_paid,
+        SUM(sd.quantity) FILTER (WHERE s.sale_status = 'canceled') AS sales_canceled
+    FROM sales s
+    JOIN sale_details sd ON sd.sale_id = s.id
+    WHERE s.deleted_at IS NULL
+      AND sd.deleted_at IS NULL
+    GROUP BY weekday
+),
+purchases_agg AS (
+    SELECT
+        TO_CHAR(p.issue_date, 'Dy') AS weekday,
+        SUM(pd.quantity) FILTER (WHERE p.purchase_status IN ('paid', 'received')) AS purchases_paid,
+        SUM(pd.quantity) FILTER (WHERE p.purchase_status = 'canceled')            AS purchases_canceled
+    FROM purchases p
+    JOIN purchase_details pd ON pd.purchase_id = p.id
+    WHERE p.deleted_at IS NULL
+      AND pd.deleted_at IS NULL
+    GROUP BY weekday
+)
+SELECT
+    COALESCE(s.weekday, p.weekday)           AS weekday,
+    COALESCE(s.sales_paid, 0)                AS sales_paid,
+    COALESCE(s.sales_canceled, 0)            AS sales_canceled,
+    COALESCE(p.purchases_paid, 0)            AS purchases_paid,
+    COALESCE(p.purchases_canceled, 0)        AS purchases_canceled
+FROM sales_agg s
+FULL OUTER JOIN purchases_agg p ON p.weekday = s.weekday
+ORDER BY
+    CASE COALESCE(s.weekday, p.weekday)
+        WHEN 'Mon' THEN 1
+        WHEN 'Tue' THEN 2
+        WHEN 'Wed' THEN 3
+        WHEN 'Thu' THEN 4
+        WHEN 'Fri' THEN 5
+        WHEN 'Sat' THEN 6
+        ELSE 7
+    END;
+	`
+
+	var flows []domain.ProductFlowDay
+	if err := r.db.Select(&flows, query); err != nil {
+		return nil, fmt.Errorf("error obteniendo flujo de productos: %v", err)
+	}
+	return flows, nil
 }
 
 // Obtener órdenes recientes
