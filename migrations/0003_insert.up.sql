@@ -581,3 +581,33 @@ INSERT INTO keys (system_id, name, description, config_key, config_value, status
 (7, 'Certificado SSL Password', 'Contraseña para el acceso al certificado SSL si aplica', 'ssl_cert_password', 'sslPassword123', B'1'),
 (7, 'Certificado SUNAT PFX', 'Ruta del archivo PFX del certificado digital SUNAT', 'sunat_cert_pfx_path', '/certs/sunat_cert.pfx', B'1'),
 (7, 'Password SUNAT PFX', 'Password del archivo PFX de SUNAT', 'sunat_cert_pfx_password', 'pfxPassword321', B'1');
+
+-- Insertar tipos de asistencia básicos
+INSERT INTO attendance_types (name, code, description) VALUES
+('Normal', 'NORM', 'Asistencia normal en horario laboral'),
+('Tardanza', 'TARD', 'El empleado llegó tarde'),
+('Salida Temprana', 'SALT', 'El empleado salió antes de tiempo'),
+('Falta Justificada', 'FJUS', 'Falta con justificación aprobada'),
+('Falta Injustificada', 'FINJ', 'Falta sin justificación');
+
+-- Insertar tipos de ausencia básicos
+INSERT INTO absence_types (name, code, description, requires_approval, is_paid) VALUES
+('Enfermedad', 'ENF', 'Ausencia por enfermedad', B'1', B'1'),
+('Vacaciones', 'VAC', 'Días de vacaciones', B'1', B'1'),
+('Permiso Personal', 'PER', 'Permiso personal remunerado', B'1', B'1'),
+('Permiso No Remunerado', 'PNR', 'Permiso personal no remunerado', B'1', B'0'),
+('Licencia Médica', 'LIC', 'Licencia médica prolongada', B'1', B'1');
+
+-- Insertar horario laboral estándar
+INSERT INTO work_schedules (name, description, is_default) VALUES
+('Horario Oficina Estándar', 'Lunes a Viernes de 9:00 a 18:00 con 1 hora de almuerzo', B'1');
+
+-- Insertar detalles del horario estándar
+INSERT INTO schedule_details (schedule_id, day_of_week, start_time, end_time, is_working_day) VALUES
+(1, 1, '09:00:00', '18:00:00', B'1'), -- Lunes
+(1, 2, '09:00:00', '18:00:00', B'1'), -- Martes
+(1, 3, '09:00:00', '18:00:00', B'1'), -- Miércoles
+(1, 4, '09:00:00', '18:00:00', B'1'), -- Jueves
+(1, 5, '09:00:00', '18:00:00', B'1'), -- Viernes
+(1, 6, '00:00:00', '00:00:00', B'0'), -- Sábado
+(1, 0, '00:00:00', '00:00:00', B'0'); -- Domingo

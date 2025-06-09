@@ -119,3 +119,59 @@ ALTER TABLE keys ADD CONSTRAINT fk_keys_created_by FOREIGN KEY (created_by) REFE
 ALTER TABLE keys ADD CONSTRAINT fk_keys_updated_by FOREIGN KEY (updated_by) REFERENCES users(id);
 
 ALTER TABLE notifications ADD CONSTRAINT fk_notifications_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
+
+/* ────────────────────────────  ASISTENCIAS  ──────────────────────────── */
+ALTER TABLE attendances
+  ADD CONSTRAINT fk_attendances_employee           FOREIGN KEY (employee_id)        REFERENCES employees(id),
+  ADD CONSTRAINT fk_attendances_attendance_type    FOREIGN KEY (attendance_type_id) REFERENCES attendance_types(id),
+  ADD CONSTRAINT fk_attendances_approved_by        FOREIGN KEY (approved_by)        REFERENCES users(id);
+
+/* ────────────────────────────  AUSENCIAS  ────────────────────────────── */
+ALTER TABLE absence_requests
+  ADD CONSTRAINT fk_absence_requests_employee      FOREIGN KEY (employee_id)        REFERENCES employees(id),
+  ADD CONSTRAINT fk_absence_requests_type          FOREIGN KEY (absence_type_id)    REFERENCES absence_types(id),
+  ADD CONSTRAINT fk_absence_requests_approved_by   FOREIGN KEY (approved_by)        REFERENCES users(id);
+
+/* ────────────────────────────  VACACIONES  ───────────────────────────── */
+ALTER TABLE vacations
+  ADD CONSTRAINT fk_vacations_employee             FOREIGN KEY (employee_id)        REFERENCES employees(id),
+  ADD CONSTRAINT fk_vacations_approved_by          FOREIGN KEY (approved_by)        REFERENCES users(id);
+
+ALTER TABLE vacation_balances
+  ADD CONSTRAINT fk_vacation_balances_employee     FOREIGN KEY (employee_id)        REFERENCES employees(id);
+
+/* ────────────────────────────  HORARIOS  ─────────────────────────────── */
+ALTER TABLE schedule_details
+  ADD CONSTRAINT fk_schedule_details_schedule      FOREIGN KEY (schedule_id)        REFERENCES work_schedules(id);
+
+ALTER TABLE employee_schedules
+  ADD CONSTRAINT fk_employee_schedules_employee    FOREIGN KEY (employee_id)        REFERENCES employees(id),
+  ADD CONSTRAINT fk_employee_schedules_schedule    FOREIGN KEY (schedule_id)        REFERENCES work_schedules(id);
+
+/* ────────────────────────────  HORAS EXTRA  ──────────────────────────── */
+ALTER TABLE overtime_requests
+  ADD CONSTRAINT fk_overtime_requests_employee     FOREIGN KEY (employee_id)        REFERENCES employees(id),
+  ADD CONSTRAINT fk_overtime_requests_approved_by  FOREIGN KEY (approved_by)        REFERENCES users(id);
+
+/* ────────────────────────────  NÓMINA  ────────────────────────────────── */
+ALTER TABLE payrolls
+  ADD CONSTRAINT fk_payrolls_created_by            FOREIGN KEY (created_by)         REFERENCES users(id),
+  ADD CONSTRAINT fk_payrolls_approved_by           FOREIGN KEY (approved_by)        REFERENCES users(id);
+
+ALTER TABLE payroll_details
+  ADD CONSTRAINT fk_payroll_details_payroll        FOREIGN KEY (payroll_id)         REFERENCES payrolls(id),
+  ADD CONSTRAINT fk_payroll_details_employee       FOREIGN KEY (employee_id)        REFERENCES employees(id);
+
+/* ────────────────────────────  BENEFICIOS  ───────────────────────────── */
+ALTER TABLE employee_benefits
+  ADD CONSTRAINT fk_employee_benefits_employee     FOREIGN KEY (employee_id)        REFERENCES employees(id);
+
+/* ────────────────────────────  DESEMPEÑO  ────────────────────────────── */
+ALTER TABLE performance_reviews
+  ADD CONSTRAINT fk_performance_reviews_employee   FOREIGN KEY (employee_id)        REFERENCES employees(id),
+  ADD CONSTRAINT fk_performance_reviews_reviewer   FOREIGN KEY (reviewer_id)        REFERENCES employees(id);
+
+/* ────────────────────────────  INCIDENTES  ───────────────────────────── */
+ALTER TABLE employee_incidents
+  ADD CONSTRAINT fk_employee_incidents_employee    FOREIGN KEY (employee_id)        REFERENCES employees(id),
+  ADD CONSTRAINT fk_employee_incidents_reported_by FOREIGN KEY (reported_by)        REFERENCES employees(id);

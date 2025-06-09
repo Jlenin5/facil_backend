@@ -740,3 +740,266 @@ CREATE TABLE notifications (
     is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Attendance Types Table
+CREATE TABLE attendance_types (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    code VARCHAR(10) NOT NULL,
+    description TEXT,
+    is_active BIT(1) NOT NULL DEFAULT B'1',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP DEFAULT NULL
+);
+
+-- Attendances Table
+CREATE TABLE attendances (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    employee_id INT NOT NULL,
+    attendance_type_id INT NOT NULL,
+    date DATE NOT NULL,
+    check_in TIMESTAMP,
+    check_out TIMESTAMP,
+    worked_hours DECIMAL(5,2),
+    late_minutes SMALLINT DEFAULT 0,
+    early_departure_minutes SMALLINT DEFAULT 0,
+    notes TEXT,
+    status VARCHAR(20) CHECK (status IN ('pending', 'approved', 'rejected')) DEFAULT 'pending',
+    approved_by INT,
+    approved_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP DEFAULT NULL,
+    CONSTRAINT unique_employee_date UNIQUE (employee_id, date)
+);
+
+-- Absence Types Table
+CREATE TABLE absence_types (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    code VARCHAR(10) NOT NULL,
+    description TEXT,
+    requires_approval BIT(1) NOT NULL DEFAULT B'1',
+    is_paid BIT(1) NOT NULL DEFAULT B'0',
+    deducts_vacation BIT(1) NOT NULL DEFAULT B'0',
+    is_active BIT(1) NOT NULL DEFAULT B'1',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP DEFAULT NULL
+);
+
+-- Absence Requests Table
+CREATE TABLE absence_requests (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    employee_id INT NOT NULL,
+    absence_type_id INT NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    reason TEXT,
+    status VARCHAR(20) CHECK (status IN ('pending', 'approved', 'rejected', 'canceled')) DEFAULT 'pending',
+    approved_by INT,
+    approved_at TIMESTAMP,
+    rejection_reason TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP DEFAULT NULL,
+    CHECK (end_date >= start_date)
+);
+
+-- Vacations Table
+CREATE TABLE vacations (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    employee_id INT NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    days_taken SMALLINT NOT NULL,
+    status VARCHAR(20) CHECK (status IN ('pending', 'approved', 'rejected', 'canceled')) DEFAULT 'pending',
+    approved_by INT,
+    approved_at TIMESTAMP,
+    rejection_reason TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP DEFAULT NULL,
+    CHECK (end_date >= start_date)
+);
+
+-- Vacation Balances Table
+CREATE TABLE vacation_balances (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    employee_id INT NOT NULL,
+    year SMALLINT NOT NULL,
+    total_days SMALLINT NOT NULL,
+    days_taken SMALLINT NOT NULL DEFAULT 0,
+    days_remaining SMALLINT GENERATED ALWAYS AS (total_days - days_taken) STORED,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP DEFAULT NULL,
+    CONSTRAINT unique_employee_year UNIQUE (employee_id, year)
+);
+
+-- Work Schedules Table
+CREATE TABLE work_schedules (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    is_default BIT(1) NOT NULL DEFAULT B'0',
+    is_active BIT(1) NOT NULL DEFAULT B'1',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP DEFAULT NULL
+);
+
+-- Schedule Details Table
+CREATE TABLE schedule_details (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    schedule_id INT NOT NULL,
+    day_of_week SMALLINT NOT NULL CHECK (day_of_week BETWEEN 0 AND 6), -- 0=Domingo, 1=Lunes, etc.
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    is_working_day BIT(1) NOT NULL DEFAULT B'1',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP DEFAULT NULL,
+    CHECK (is_working_day = B'0' OR end_time > start_time)
+);
+
+-- Employee Schedules Table
+CREATE TABLE employee_schedules (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    employee_id INT NOT NULL,
+    schedule_id INT NOT NULL,
+    effective_date DATE NOT NULL,
+    end_date DATE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP DEFAULT NULL,
+    CHECK (end_date IS NULL OR end_date >= effective_date)
+);
+
+-- Holidays Table
+CREATE TABLE holidays (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    date DATE NOT NULL,
+    recurring BIT(1) NOT NULL DEFAULT B'0',
+    is_active BIT(1) NOT NULL DEFAULT B'1',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP DEFAULT NULL
+);
+
+-- Overtime Requests Table
+CREATE TABLE overtime_requests (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    employee_id INT NOT NULL,
+    date DATE NOT NULL,
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    hours DECIMAL(4,2) GENERATED ALWAYS AS (
+        EXTRACT(EPOCH FROM (end_time - start_time))/3600
+    ) STORED,
+    reason TEXT NOT NULL,
+    status VARCHAR(20) CHECK (status IN ('pending', 'approved', 'rejected', 'canceled')) DEFAULT 'pending',
+    approved_by INT,
+    approved_at TIMESTAMP,
+    rejection_reason TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP DEFAULT NULL,
+    CHECK (end_time > start_time)
+);
+
+-- Payrolls Table
+CREATE TABLE payrolls (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    reference VARCHAR(20) NOT NULL,
+    period_start DATE NOT NULL,
+    period_end DATE NOT NULL,
+    payment_date DATE NOT NULL,
+    status VARCHAR(20) CHECK (status IN ('draft', 'calculated', 'approved', 'paid', 'canceled')) DEFAULT 'draft',
+    notes TEXT,
+    created_by INT NOT NULL,
+    approved_by INT,
+    approved_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP DEFAULT NULL,
+    CHECK (period_end >= period_start),
+    CHECK (payment_date >= period_end)
+);
+
+-- Payroll Details Table
+CREATE TABLE payroll_details (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    payroll_id INT NOT NULL,
+    employee_id INT NOT NULL,
+    base_salary DECIMAL(12,2) NOT NULL,
+    days_worked SMALLINT NOT NULL,
+    hours_worked DECIMAL(6,2) NOT NULL,
+    overtime_hours DECIMAL(6,2) DEFAULT 0,
+    overtime_pay DECIMAL(12,2) DEFAULT 0,
+    bonuses DECIMAL(12,2) DEFAULT 0,
+    deductions DECIMAL(12,2) DEFAULT 0,
+    net_pay DECIMAL(12,2) NOT NULL,
+    payment_method VARCHAR(50),
+    bank_account VARCHAR(50),
+    status VARCHAR(20) CHECK (status IN ('pending', 'paid', 'canceled')) DEFAULT 'pending',
+    paid_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP DEFAULT NULL
+);
+
+-- Employee Benefits Table
+CREATE TABLE employee_benefits (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    employee_id INT NOT NULL,
+    benefit_type VARCHAR(50) NOT NULL,
+    description TEXT,
+    amount DECIMAL(12,2),
+    start_date DATE NOT NULL,
+    end_date DATE,
+    is_active BIT(1) NOT NULL DEFAULT B'1',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP DEFAULT NULL,
+    CHECK (end_date IS NULL OR end_date >= start_date)
+);
+
+-- Performance Reviews Table
+CREATE TABLE performance_reviews (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    employee_id INT NOT NULL,
+    reviewer_id INT NOT NULL,
+    review_date DATE NOT NULL,
+    next_review_date DATE,
+    performance_score SMALLINT CHECK (performance_score BETWEEN 1 AND 5),
+    strengths TEXT,
+    areas_for_improvement TEXT,
+    comments TEXT,
+    status VARCHAR(20) CHECK (status IN ('draft', 'completed', 'acknowledged')) DEFAULT 'draft',
+    acknowledged_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP DEFAULT NULL,    
+    CHECK (next_review_date IS NULL OR next_review_date > review_date)
+);
+
+-- Employee Incidents Table
+CREATE TABLE employee_incidents (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    employee_id INT NOT NULL,
+    incident_type VARCHAR(50) NOT NULL,
+    incident_date DATE NOT NULL,
+    description TEXT NOT NULL,
+    severity VARCHAR(20) CHECK (severity IN ('low', 'medium', 'high', 'critical')),
+    action_taken TEXT,
+    reported_by INT NOT NULL,
+    status VARCHAR(20) CHECK (status IN ('open', 'investigating', 'resolved', 'closed')) DEFAULT 'open',
+    resolved_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP DEFAULT NULL
+);
