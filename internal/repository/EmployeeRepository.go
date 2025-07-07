@@ -40,7 +40,7 @@ func (r *EmployeeRepository) GetAllEmployees() ([]domain.Employees, error) {
 	var employees []domain.Employees
 	query := `
 		SELECT 
-			e.id, e.first_name, e.second_name, e.third_name, e.surname, e.second_surname, e.photo, 
+			e.id, e.names, e.surname, e.second_surname, e.photo, 
 			e.warehouse_id, e.document_type, e.document_number, e.birth_date, e.gender, 
 			e.email, e.phone, e.address, e.hire_date, e.job_position_id, e.salary, e.status,
 			w.id AS "warehouse.id", w.name AS "warehouse.name", w.address AS "warehouse.address", w.status AS "warehouse.status", w.branch_office_id AS "warehouse.branch_office_id",
@@ -85,7 +85,7 @@ func (r *EmployeeRepository) GetEmployeeById(employeeId int) (*domain.Employees,
 
 	query := `
 		SELECT 
-			e.id, e.first_name, e.second_name, e.third_name, e.surname, e.second_surname, e.photo, 
+			e.id, e.names, e.surname, e.second_surname, e.photo, 
 			e.warehouse_id, e.document_type, e.document_number, e.birth_date, e.gender, 
 			e.email, e.phone, e.address, e.hire_date, e.job_position_id, e.salary, e.status,
 			w.id AS "warehouse.id", w.name AS "warehouse.name", w.address AS "warehouse.address", w.status AS "warehouse.status", w.branch_office_id AS "warehouse.branch_office_id",

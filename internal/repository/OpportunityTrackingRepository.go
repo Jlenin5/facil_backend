@@ -63,7 +63,7 @@ func (r *OpportunityTrackingRepository) GetAllOpportunityTracking() ([]domain.Op
 		// Obtener usuario de la orden de venta
 		var user domain.Users
 		err = r.db.Get(&user, `
-			SELECT id, role_id, display_name, employee_id, photo_url, email, status FROM users WHERE id = $1 AND deleted_at IS NULL
+			SELECT id, role_id, username, employee_id, avatar, email, status FROM users WHERE id = $1 AND deleted_at IS NULL
 		`, opportunityTracking[i].User_Id)
 		if err != nil && err != sql.ErrNoRows { // Manejar casos donde no hay usuario asociado
 			fmt.Printf("Error obteniendo el usuario para la orden de venta %d: %v\n", opportunityTracking[i].Id, err)
@@ -75,7 +75,7 @@ func (r *OpportunityTrackingRepository) GetAllOpportunityTracking() ([]domain.Op
 		if user.Employee_Id.Valid {
 			var company domain.Employees
 			err = r.db.Get(&company, `
-				SELECT id, first_name, second_name, third_name, surname, second_surname, photo_url, warehouse_id, document_type, document_number, birth_date, gender, email, phone, address, hire_date, position, salary, status
+				SELECT id, first_name, second_name, third_name, surname, second_surname, photo, warehouse_id, document_type, document_number, birth_date, gender, email, phone, address, hire_date, position, salary, status
 				FROM employees 
 				WHERE id = $1 AND deleted_at IS NULL
 			`, user.Employee_Id)
@@ -123,7 +123,7 @@ func (r *OpportunityTrackingRepository) GetOpportunityTrackingById(opportunityTr
 	// Obtener usuario de la orden de venta
 	var user domain.Users
 	err = r.db.Get(&user, `
-		SELECT id, role_id, display_name, employee_id, photo_url, email, status FROM users WHERE id = $1 AND deleted_at IS NULL
+		SELECT id, role_id, username, employee_id, avatar, email, status FROM users WHERE id = $1 AND deleted_at IS NULL
 	`, opportunityTracking.User_Id)
 	if err != nil && err != sql.ErrNoRows { // Manejar casos donde no hay usuario asociado
 		fmt.Printf("Error obteniendo usuario para la orden de venta %d: %v\n", opportunityTrackingId, err)

@@ -2,7 +2,9 @@ package routes
 
 import (
 	"github.com/Jlenin5/facil_backend/internal/repository"
+	"github.com/Jlenin5/facil_backend/internal/repository/human-resources"
 	"github.com/Jlenin5/facil_backend/internal/usecase"
+	"github.com/Jlenin5/facil_backend/internal/usecase/human-resources"
 	"github.com/gorilla/mux"
 	"github.com/jmoiron/sqlx"
 )
@@ -19,6 +21,22 @@ func SetupProtectedRoutes(router *mux.Router, db *sqlx.DB) {
 	customerUC := usecase.NewCustomerUseCase(repository.NewCustomerRepository(db))
 	employeeUC := usecase.NewEmployeeUseCase(repository.NewEmployeeRepository(db))
 	exchangeRateUC := usecase.NewExchangeRateUseCase(repository.NewExchangeRateRepository(db))
+	attendanceTypeUC := usecaseHumanresources.NewAttendanceTypeUseCase(repositoryHumanresources.NewAttendanceTypeRepository(db))
+	absenceRequestRoutesUC := usecaseHumanresources.NewAbsenceRequestUseCase(repositoryHumanresources.NewAbsenceRequestRepository(db))
+	absenceTypeRoutesUC := usecaseHumanresources.NewAbsenceTypeUseCase(repositoryHumanresources.NewAbsenceTypeRepository(db))
+	attendanceRoutesUC := usecaseHumanresources.NewAttendanceUseCase(repositoryHumanresources.NewAttendanceRepository(db))
+	employeeBenefitRoutesUC := usecaseHumanresources.NewEmployeeBenefitUseCase(repositoryHumanresources.NewEmployeeBenefitRepository(db))
+	employeeIncidentRoutesUC := usecaseHumanresources.NewEmployeeIncidentUseCase(repositoryHumanresources.NewEmployeeIncidentRepository(db))
+	employeeScheduleRoutesUC := usecaseHumanresources.NewEmployeeScheduleUseCase(repositoryHumanresources.NewEmployeeScheduleRepository(db))
+	holidayRoutesUC := usecaseHumanresources.NewHolidayUseCase(repositoryHumanresources.NewHolidayRepository(db))
+	overtimeRequestRoutesUC := usecaseHumanresources.NewOvertimeRequestUseCase(repositoryHumanresources.NewOvertimeRequestRepository(db))
+	payrollRoutesUC := usecaseHumanresources.NewPayrollUseCase(repositoryHumanresources.NewPayrollRepository(db))
+	payrollDetailRoutesUC := usecaseHumanresources.NewPayrollDetailUseCase(repositoryHumanresources.NewPayrollDetailRepository(db))
+	performanceReviewRoutesUC := usecaseHumanresources.NewPerformanceReviewUseCase(repositoryHumanresources.NewPerformanceReviewRepository(db))
+	scheduleDetailRoutesUC := usecaseHumanresources.NewScheduleDetailUseCase(repositoryHumanresources.NewScheduleDetailRepository(db))
+	vacationRoutesUC := usecaseHumanresources.NewVacationUseCase(repositoryHumanresources.NewVacationRepository(db))
+	vacationBalanceRoutesUC := usecaseHumanresources.NewVacationBalanceUseCase(repositoryHumanresources.NewVacationBalanceRepository(db))
+	workScheduleRoutesUC := usecaseHumanresources.NewWorkScheduleUseCase(repositoryHumanresources.NewWorkScheduleRepository(db))
 	inventoryMovementUC := usecase.NewInventoryMovementUseCase(repository.NewInventoryMovementRepository(db))
 	jobPositionUC := usecase.NewJobPositionUseCase(repository.NewJobPositionRepository(db))
 	keyUC := usecase.NewKeyUseCase(repository.NewKeyRepository(db))
@@ -54,6 +72,22 @@ func SetupProtectedRoutes(router *mux.Router, db *sqlx.DB) {
 	CustomerRoutes(router, customerUC)
 	EmployeeRoutes(router, employeeUC)
 	ExchangeRateRoutes(router, exchangeRateUC)
+	AttendanceTypeRoutes(router, attendanceTypeUC)
+	AbsenceRequestRoutes(router, absenceRequestRoutesUC)
+	AbsenceTypeRoutes(router, absenceTypeRoutesUC)
+	AttendanceRoutes(router, attendanceRoutesUC)
+	EmployeeBenefitRoutes(router, employeeBenefitRoutesUC)
+	EmployeeIncidentRoutes(router, employeeIncidentRoutesUC)
+	EmployeeScheduleRoutes(router, employeeScheduleRoutesUC)
+	HolidayRoutes(router, holidayRoutesUC)
+	OvertimeRequestRoutes(router, overtimeRequestRoutesUC)
+	PayrollRoutes(router, payrollRoutesUC)
+	PayrollDetailRoutes(router, payrollDetailRoutesUC)
+	PerformanceReviewRoutes(router, performanceReviewRoutesUC)
+	ScheduleDetailRoutes(router, scheduleDetailRoutesUC)
+	VacationRoutes(router, vacationRoutesUC)
+	VacationBalanceRoutes(router, vacationBalanceRoutesUC)
+	WorkScheduleRoutes(router, workScheduleRoutesUC)
 	InventoryMovementRoutes(router, inventoryMovementUC)
 	JobPositionRoutes(router, jobPositionUC)
 	KeyRoutes(router, keyUC)

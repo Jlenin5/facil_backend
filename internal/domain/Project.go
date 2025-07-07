@@ -236,7 +236,7 @@ type ExtraData struct {
 }
 
 type OrderInfo struct {
-	ID          int       `db:"id" json:"id"`
+	Id          int       `db:"id" json:"id"`
 	Reference   string    `db:"reference" json:"reference"`
 	CustomerID  int       `db:"customer_id" json:"customer_id"`
 	IssueDate   time.Time `db:"issue_date" json:"issue_date"`

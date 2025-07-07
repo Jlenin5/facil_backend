@@ -49,7 +49,7 @@ func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 
 	// Manejar las imágenes subidas
 	files := r.MultipartForm.File["images"]
-	for i, fileHeader := range files {
+	for _, fileHeader := range files {
 		file, err := fileHeader.Open()
 		if err != nil {
 			http.Error(w, "Failed to open file", http.StatusInternalServerError)
@@ -91,14 +91,14 @@ func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Crear la entrada en product_images
-		if i < len(product.Images) {
-			product.Images[i].URL = imagePath
-		} else {
-			product.Images = append(product.Images, domain.ProductImages{
-				URL:      imagePath,
-				Featured: "",
-			})
-		}
+		// if i < len(product.Images) {
+		// 	product.Images[i].URL = imagePath
+		// } else {
+		// 	product.Images = append(product.Images, domain.ProductImages{
+		// 		URL:      imagePath,
+		// 		Featured: "",
+		// 	})
+		// }
 	}
 
 	// Llama al caso de uso para crear un nuevo producto
@@ -164,39 +164,39 @@ func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	}
 	product.Id = id
 
-	existingImages, err := h.ProductUC.GetAllProductImages(product.Id)
-	if err != nil {
-		http.Error(w, "Failed to retrieve existing images", http.StatusInternalServerError)
-		return
-	}
+	// existingImages, err := h.ProductUC.GetAllProductImages(product.Id)
+	// if err != nil {
+	// 	http.Error(w, "Failed to retrieve existing images", http.StatusInternalServerError)
+	// 	return
+	// }
 
-	dbImagesMap := make(map[string]domain.ProductImages)
-	for _, img := range existingImages {
-		dbImagesMap[img.URL] = img
-	}
+	// dbImagesMap := make(map[string]domain.ProductImages)
+	// for _, img := range existingImages {
+	// 	dbImagesMap[img.URL] = img
+	// }
 
-	envImagesMap := make(map[string]domain.ProductImages)
-	for _, img := range product.Images {
-		envImagesMap[img.URL] = img
-	}
+	// envImagesMap := make(map[string]domain.ProductImages)
+	// for _, img := range product.Images {
+	// 	envImagesMap[img.URL] = img
+	// }
 
 	files := r.MultipartForm.File["images"]
 
 	// Eliminar imágenes obsoletas
-	for url, img := range dbImagesMap {
-		if _, exists := envImagesMap[url]; !exists {
-			if err := h.deleteImage(img.Id, url); err != nil {
-				http.Error(w, "Failed to delete image", http.StatusInternalServerError)
-				return
-			}
-		}
-	}
+	// for url, img := range dbImagesMap {
+	// 	if _, exists := envImagesMap[url]; !exists {
+	// 		if err := h.deleteImage(img.Id, url); err != nil {
+	// 			http.Error(w, "Failed to delete image", http.StatusInternalServerError)
+	// 			return
+	// 		}
+	// 	}
+	// }
 
 	// Verificar si la URL de la imagen contiene "blob:"
-	filteredImages := filterImagesWithBlob(product.Images)
+	// filteredImages := filterImagesWithBlob(product.Images)
 
 	// Procesar nuevas imágenes
-	for i, fileHeader := range files {
+	for _, fileHeader := range files {
 		if fileHeader.Filename == "" {
 			continue
 		}
@@ -208,23 +208,23 @@ func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		}
 		defer file.Close()
 
-		imagePath, err := saveUploadedFile(fileHeader, file)
-		if err != nil {
-			http.Error(w, "Failed to save image", http.StatusInternalServerError)
-			return
-		}
+		// imagePath, err := saveUploadedFile(fileHeader, file)
+		// if err != nil {
+		// 	http.Error(w, "Failed to save image", http.StatusInternalServerError)
+		// 	return
+		// }
 
 		// Verificar si la imagen ya existe en la base de datos
-		if i < len(filteredImages) {
-			filteredImages[i].URL = imagePath
-		} else {
-			product.Images = append(filteredImages, domain.ProductImages{
-				URL:      imagePath,
-				Featured: "",
-			})
-		}
+		// if i < len(filteredImages) {
+		// 	filteredImages[i].URL = imagePath
+		// } else {
+		// 	product.Images = append(filteredImages, domain.ProductImages{
+		// 		URL:      imagePath,
+		// 		Featured: "",
+		// 	})
+		// }
 	}
-	product.Images = filteredImages
+	// product.Images = filteredImages
 
 	err = h.ProductUC.UpdateProduct(&product)
 	if err != nil {
@@ -313,15 +313,15 @@ func (h *ProductHandler) deleteImage(imageID int, imagePath string) error {
 	return nil
 }
 
-func filterImagesWithBlob(images []domain.ProductImages) []domain.ProductImages {
-	var filtered []domain.ProductImages
-	for _, img := range images {
-		if strings.HasPrefix(img.URL, "blob:") {
-			filtered = append(filtered, img)
-		}
-	}
-	return filtered
-}
+// func filterImagesWithBlob(images []domain.ProductImages) []domain.ProductImages {
+// 	var filtered []domain.ProductImages
+// 	for _, img := range images {
+// 		if strings.HasPrefix(img.URL, "blob:") {
+// 			filtered = append(filtered, img)
+// 		}
+// 	}
+// 	return filtered
+// }
 
 func parseExcel(file multipart.File) ([]domain.Products, error) {
 	var products []domain.Products
@@ -369,8 +369,8 @@ func parseExcel(file multipart.File) ([]domain.Products, error) {
 		// Mapear los datos a la estructura Products
 		product := domain.Products{
 			Name:     row[headerMap["Nombre"]],
-			Price:    parseFloat(row[headerMap["Precio"]]),
-			Cost:     parseFloat(row[headerMap["Costo"]]),
+			// Price:    parseFloat(row[headerMap["Precio"]]),
+			// Cost:     parseFloat(row[headerMap["Costo"]]),
 			Quantity: parseFloat(row[headerMap["Cantidad"]]),
 		}
 
@@ -418,8 +418,8 @@ func parseCSV(file multipart.File) ([]domain.Products, error) {
 		// Mapear los datos a la estructura Products
 		product := domain.Products{
 			Name:     record[headerMap["Nombre"]],
-			Price:    parseFloat(record[headerMap["Precio"]]),
-			Cost:     parseFloat(record[headerMap["Costo"]]),
+			// Price:    parseFloat(record[headerMap["Precio"]]),
+			// Cost:     parseFloat(record[headerMap["Costo"]]),
 			Quantity: parseFloat(record[headerMap["Cantidad"]]),
 		}
 
@@ -543,7 +543,7 @@ func (h *ProductHandler) ExportExcel(w http.ResponseWriter, r *http.Request) {
 		cells := []string{
 			product.Name,
 			product.Brand.Name,
-			fmt.Sprintf("%.2f", product.Price),
+			fmt.Sprintf("%.2f", product.Prices_cf),
 			fmt.Sprintf("%.2f", product.Cost),
 			fmt.Sprintf("%.2f", product.Quantity),
 			*product.SKU.String,

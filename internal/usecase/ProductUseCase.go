@@ -64,9 +64,9 @@ func (uc *ProductUseCase) DeleteProductsByIds(ids []int) error {
 	return uc.ProductRepo.DeleteProductsByIds(ids)
 }
 
-func (uc *ProductUseCase) GetAllProductImages(productId int) ([]domain.ProductImages, error) {
-	return uc.ProductRepo.GetAllProductImages(productId)
-}
+// func (uc *ProductUseCase) GetAllProductImages(productId int) ([]domain.ProductImages, error) {
+// 	return uc.ProductRepo.GetAllProductImages(productId)
+// }
 
 func (uc *ProductUseCase) DeleteProductImageById(id int) error {
 	return uc.ProductRepo.DeleteProductImageById(id)

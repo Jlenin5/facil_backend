@@ -43,7 +43,7 @@ func (r *CashMovementRepository) GetAllCashMovements() ([]domain.CashMovements, 
 			cr.id AS "cash_register.id",
 			pm.id AS "payment_method.id", pm.name AS "payment_method.name",
 			u.id AS "user.id", u.employee_id AS "user.employee_id",
-			eo.id AS "user.employee.id", eo.first_name AS "user.employee.first_name", eo.second_name AS "user.employee.second_name", eo.third_name AS "user.employee.third_name", eo.surname AS "user.employee.surname", eo.second_surname AS "user.employee.second_surname"
+			eo.id AS "user.employee.id", eo.names AS "user.employee.names", eo.surname AS "user.employee.surname", eo.second_surname AS "user.employee.second_surname"
 		FROM cash_movements cm
 		LEFT JOIN cash_registers cr ON cm.cash_register_id=cr.id
 		LEFT JOIN payment_methods pm ON cm.payment_method_id=pm.id
@@ -69,7 +69,7 @@ func (r *CashMovementRepository) GetCashMovementById(cashRegisterId int) (*domai
 			cr.id AS "cash_register.id",
 			pm.id AS "payment_method.id", pm.name AS "payment_method.name",
 			u.id AS "user.id", u.employee_id AS "user.employee_id",
-			eo.id AS "user.employee.id", eo.first_name AS "user.employee.first_name", eo.second_name AS "user.employee.second_name", eo.third_name AS "user.employee.third_name", eo.surname AS "user.employee.surname", eo.second_surname AS "user.employee.second_surname"
+			eo.id AS "user.employee.id", eo.first_name AS "user.employee.names", eo.surname AS "user.employee.surname", eo.second_surname AS "user.employee.second_surname"
 		FROM cash_movements cm
 		LEFT JOIN cash_registers cr ON cm.cash_register_id=cr.id
 		LEFT JOIN payment_methods pm ON cm.payment_method_id=pm.id

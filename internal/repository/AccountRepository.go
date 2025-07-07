@@ -22,7 +22,7 @@ func (r *AccountRepository) GetAccountById(userId int) (*domain.Account, error) 
 		SELECT 
 			u.id, u.username, u.employee_id, u.avatar, u.email,
 			COALESCE(c.name, '') AS "company_name",
-			CONCAT_WS(' ', e.first_name, e.second_name, e.third_name, e.surname, e.second_surname) AS name, e.phone,
+			CONCAT_WS(' ', e.names, e.surname, e.second_surname) AS name, e.phone,
 			COALESCE(sub.id, 0) AS "subscription.id", COALESCE(sub.plan_id, 0) AS "subscription.plan_id", COALESCE(sub.company_id, 0) AS "subscription.company_id", COALESCE(sub.start_date, '1970-01-01') AS "subscription.start_date", COALESCE(sub.end_date, '1970-01-01') AS "subscription.end_date", COALESCE(sub.status, '') AS "subscription.status",
 			COALESCE(p.id, 0) AS "subscription.plan.id", COALESCE(p.title, '') AS "subscription.plan.title", COALESCE(p.price, 0) AS "subscription.plan.price", COALESCE(p.max_branch_offices, 0) AS "subscription.plan.max_branch_offices", COALESCE(p.max_warehouses, 0) AS "subscription.plan.max_warehouses", COALESCE(p.max_purchases, 0) AS "subscription.plan.max_purchases", COALESCE(p.max_users, 0) AS "subscription.plan.max_users", COALESCE(p.max_products, 0) AS "subscription.plan.max_products", COALESCE(p.max_services, 0) AS "subscription.plan.max_services", COALESCE(p.max_documents, 0) AS "subscription.plan.max_documents", COALESCE(p.status, CAST(1 AS BIT)) AS "subscription.plan.status"
 		FROM users u

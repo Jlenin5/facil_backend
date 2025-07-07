@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"database/sql"
 	"fmt"
 
 	"github.com/Jlenin5/facil_backend/internal/domain"
@@ -32,8 +31,12 @@ func (r *ProductRepository) CreateProduct(product *domain.Products) error {
 		"brand_id":           product.Brand_Id,
 		"handle":             product.Handle,
 		"description":        product.Description,
-		"featured_image_id":  product.FeaturedImageID.String,
-		"price":              product.Price,
+		"tags":               product.Tags,
+		"featured_image":     product.FeaturedImage.String,
+		"images":             product.Images,
+		"prices_cf":          product.Prices_cf,
+		"prices_sf":          product.Prices_sf,
+		"prices_box":         product.Prices_box,
 		"cost":               product.Cost,
 		"tax_rate":           product.TaxRate,
 		"quantity":           product.Quantity,
@@ -52,9 +55,9 @@ func (r *ProductRepository) CreateProduct(product *domain.Products) error {
 	// Insertar el producto en la tabla `products`
 	queryProduct := `
 		INSERT INTO products (
-			name, brand_id, handle, description, featured_image_id, price, cost, tax_rate, quantity, sku, width, height, depth, liters, weight, barcode, rating, extra_shipping_fee, status
+			name, brand_id, handle, description, tags, featured_image, images, prices_cf, prices_sf, prices_box, cost, tax_rate, quantity, sku, width, height, depth, liters, weight, barcode, rating, extra_shipping_fee, status
 		) VALUES (
-			:name, :brand_id, :handle, :description, :featured_image_id, :price, :cost, :tax_rate, :quantity, :sku, :width, :height, :depth, :liters, :weight, :barcode, :rating, :extra_shipping_fee, :status
+			:name, :brand_id, :handle, :description, :tags, :featured_image, :images, :prices_cf, :prices_sf, :prices_box, :cost, :tax_rate, :quantity, :sku, :width, :height, :depth, :liters, :weight, :barcode, :rating, :extra_shipping_fee, :status
 		) RETURNING id
 	`
 
@@ -93,25 +96,6 @@ func (r *ProductRepository) CreateProduct(product *domain.Products) error {
 		}
 	}
 
-	// Insertar imágenes en la tabla `product_images`
-	queryImages := `
-		INSERT INTO product_images (product_id, url, featured)
-		VALUES (:product_id, :url, :featured)
-	`
-
-	for _, image := range product.Images {
-		_, err := tx.NamedExec(queryImages, map[string]interface{}{
-			"product_id": productId,
-			"url":        image.URL,
-			"featured":   image.Featured,
-		})
-		if err != nil {
-			tx.Rollback()
-			fmt.Printf("Error insertando imagen: %v\n", err)
-			return err
-		}
-	}
-
 	// Finalizar la transacción
 	err = tx.Commit()
 	if err != nil {
@@ -127,20 +111,20 @@ func (r *ProductRepository) SaveProducts(products []domain.Products) error {
 	// Iniciar una transacción
 	tx, err := r.db.Beginx()
 	if err != nil {
-			return fmt.Errorf("failed to begin transaction: %w", err)
+		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 
 	// Preparar la consulta para insertar productos
 	query := `
-		INSERT INTO products (name, price, cost, quantity)
-		VALUES (:name, :price, :cost, :quantity)
+		INSERT INTO products (name, prices_cf, cost, quantity)
+		VALUES (:name, :prices_cf, :cost, :quantity)
 	`
 
 	// Insertar cada producto
 	for _, product := range products {
 		_, err := tx.NamedExec(query, map[string]interface{}{
 			"name":     product.Name,
-			"price":    product.Price,
+			"prices_cf":    product.Prices_cf,
 			"cost":     product.Cost,
 			"quantity": product.Quantity,
 		})
@@ -152,7 +136,7 @@ func (r *ProductRepository) SaveProducts(products []domain.Products) error {
 
 	// Confirmar la transacción
 	if err := tx.Commit(); err != nil {
-			return fmt.Errorf("failed to commit transaction: %w", err)
+		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
 	return nil
@@ -163,7 +147,11 @@ func (r *ProductRepository) GetAllProducts() ([]domain.Products, error) {
 	var products []domain.Products
 	query := `
 		SELECT
-			p.id, p.name, p.brand_id, p.handle, p.description, p.featured_image_id, p.price, p.cost, p.tax_rate, p.quantity, p.sku, p.width, p.height, p.depth, p.liters, p.weight, p.barcode, p.rating, p.extra_shipping_fee, p.status,
+			p.id, p.name, p.brand_id, p.handle, p.description, p.tags,
+			p.featured_image, p.images, p.prices_cf, p.prices_sf, p.prices_box,
+			p.cost, p.tax_rate, p.quantity, p.sku, p.width, p.height, p.depth,
+			p.liters, p.weight, p.barcode, p.rating, p.extra_shipping_fee, p.status,
+			p.created_by, p.updated_by,
 			COALESCE(b.id, 0) AS "brand.id", COALESCE(b.name, '') AS "brand.name"
 		FROM products p
 		LEFT JOIN brands b ON p.brand_id=b.id
@@ -192,22 +180,9 @@ func (r *ProductRepository) GetAllProducts() ([]domain.Products, error) {
 		}
 		products[i].Categories = categories
 
-		// Obtener imágenes del producto
-		var images []domain.ProductImages
-		err = r.db.Select(&images, `
-			SELECT pi.id, pi.product_id, pi.url, pi.featured
-			FROM product_images pi
-			WHERE pi.product_id = $1
-		`, products[i].Id)
-		if err != nil && err != sql.ErrNoRows { // Manejar casos donde no hay imagen asociada
-			fmt.Printf("Error obteniendo marca para el producto %d: %v\n", products[i].Id, err)
-			return nil, err
-		}
-		products[i].Images = images
-
 		// Obtener stock del producto
 		var stock int
-		err = r.db.Get(&stock,`
+		err = r.db.Get(&stock, `
 			SELECT
 				COALESCE(SUM(current_stock), 0)
 			FROM stock_control
@@ -272,7 +247,7 @@ func (r *ProductRepository) GetProductById(productId int) (*domain.Products, err
 	var product domain.Products
 	query := `
 		SELECT
-			p.id, p.name, p.brand_id, p.handle, p.description, p.featured_image_id, p.price, p.cost, p.tax_rate, p.quantity, p.sku, p.width, p.height, p.depth, p.liters, p.weight, p.barcode, p.rating, p.extra_shipping_fee, p.status,
+			p.id, p.name, p.brand_id, p.handle, p.description, p.tags, p.featured_image, p.images, p.prices_cf, p.cost, p.tax_rate, p.quantity, p.sku, p.width, p.height, p.depth, p.liters, p.weight, p.barcode, p.rating, p.extra_shipping_fee, p.status, p.created_by, p.updated_by,
 			COALESCE(b.id, 0) AS "brand.id", COALESCE(b.name, '') AS "brand.name"
 		FROM products p
 		LEFT JOIN brands b ON p.brand_id=b.id
@@ -299,32 +274,19 @@ func (r *ProductRepository) GetProductById(productId int) (*domain.Products, err
 	}
 	product.Categories = categories
 
-	// Obtener imágenes del producto
-	var images []domain.ProductImages
-	err = r.db.Select(&images, `
-		SELECT pi.id, pi.product_id, pi.url, pi.featured
-		FROM product_images pi
-		WHERE pi.product_id = $1
-	`, product.Id)
-	if err != nil && err != sql.ErrNoRows { // Manejar casos donde no hay imagen asociada
-		fmt.Printf("Error obteniendo marca para el producto %d: %v\n", product.Id, err)
-		return nil, err
-	}
-	product.Images = images
-
 	// Obtener stock del producto
 	var stock int
-	err = r.db.Get(&stock,`
+	err = r.db.Get(&stock, `
 			SELECT
 				COALESCE(SUM(current_stock), 0)
 			FROM stock_control
 			WHERE product_id = $1
 		`, productId)
-		if err != nil {
-			fmt.Printf("Error obteniendo total de stock para producto %d: %v\n", productId, err)
-			return nil, err
-		}
-		product.Stock = stock
+	if err != nil {
+		fmt.Printf("Error obteniendo total de stock para producto %d: %v\n", productId, err)
+		return nil, err
+	}
+	product.Stock = stock
 
 	// Obtener booking del producto
 	var booking []domain.Booking
@@ -379,7 +341,7 @@ func (r *ProductRepository) GetProductsByIds(ids []int) ([]domain.Products, erro
 
 	query := `
 		SELECT
-			p.id, p.name, p.brand_id, p.handle, p.description, p.featured_image_id, p.price, p.cost, p.tax_rate, p.quantity, p.sku, p.width, p.height, p.depth, p.liters, p.weight, p.barcode, p.rating, p.extra_shipping_fee, p.status,
+			p.id, p.name, p.brand_id, p.handle, p.description, p.featured_image, p.prices_cf, p.cost, p.tax_rate, p.quantity, p.sku, p.width, p.height, p.depth, p.liters, p.weight, p.barcode, p.rating, p.extra_shipping_fee, p.status,
 			b.id AS "brand.id", b.name AS "brand.name"
 		FROM products p
 		LEFT JOIN brands b ON p.brand_id=b.id
@@ -410,8 +372,8 @@ func (r *ProductRepository) UpdateProduct(product *domain.Products) error {
 		"brand_id":           product.Brand_Id,
 		"handle":             product.Handle,
 		"description":        product.Description,
-		"featured_image_id":  product.FeaturedImageID.String,
-		"price":              product.Price,
+		"featured_image":     product.FeaturedImage.String,
+		"prices_cf":              product.Prices_cf,
 		"cost":               product.Cost,
 		"tax_rate":           product.TaxRate,
 		"quantity":           product.Quantity,
@@ -435,8 +397,8 @@ func (r *ProductRepository) UpdateProduct(product *domain.Products) error {
 			brand_id =           :brand_id,
 			handle =             :handle,
 			description =        :description,
-			featured_image_id =  :featured_image_id.String,
-			price =              :price,
+			featured_image =  :featured_image.String,
+			prices_cf =              :prices_cf,
 			cost =               :cost,
 			tax_rate =           :tax_rate,
 			quantity =           :quantity,
@@ -498,24 +460,6 @@ func (r *ProductRepository) UpdateProduct(product *domain.Products) error {
 		}
 	}
 
-	// Insertar nuevas imágenes
-	queryInsertImages := `
-		INSERT INTO product_images (product_id, url, featured)
-		VALUES (:product_id, :url, :featured)
-	`
-	for _, newImage := range product.Images {
-		_, err := tx.NamedExec(queryInsertImages, map[string]interface{}{
-			"product_id": product.Id,
-			"url":        newImage.URL,
-			"featured":   newImage.Featured,
-		})
-		if err != nil {
-			tx.Rollback()
-			fmt.Printf("Error insertando nueva imagen: %v\n", err)
-			return err
-		}
-	}
-
 	// Confirmar la transacción
 	err = tx.Commit()
 	if err != nil {
@@ -546,25 +490,6 @@ func (r *ProductRepository) DeleteProductsByIds(ids []int) error {
 	query := `UPDATE products SET deleted_at = NOW() WHERE id = ANY($1)`
 	_, err := r.db.Exec(query, pq.Array(ids))
 	return err
-}
-
-// Obtener imágenes de un producto
-func (r *ProductRepository) GetAllProductImages(productId int) ([]domain.ProductImages, error) {
-	var images []domain.ProductImages
-
-	query := `
-		SELECT id, product_id, url, featured
-		FROM product_images
-		WHERE product_id = $1
-	`
-
-	err := r.db.Select(&images, query, productId)
-	if err != nil {
-		fmt.Printf("Error al obtener imágenes del producto: %v\n", err)
-		return nil, err
-	}
-
-	return images, nil
 }
 
 func (r *ProductRepository) DeleteProductImageById(imageId int) error {

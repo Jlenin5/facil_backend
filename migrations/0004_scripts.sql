@@ -3,7 +3,7 @@
 -- 	c.id AS "base_currency.id", c.name AS "base_currency.name", c.code AS "base_currency.code", c.symbol AS "base_currency.symbol",
 -- 	cu.id AS "target_currency.id", cu.name AS "target_currency.name", cu.code AS "target_currency.code", cu.symbol AS "target_currency.symbol",
 -- 	u.id AS "created_by.id", u.employee_id AS "created_by.employee_id",
--- 	e.id AS "created_by.employee.id", e.first_name AS "created_by.employee.first_name", e.second_name AS "created_by.employee.second_name", e.third_name AS "created_by.employee.third_name", e.surname AS "created_by.employee.surname", e.second_surname AS "created_by.employee.second_surname",
+-- 	e.id AS "created_by.employee.id", e.names AS "created_by.employee.names", e.surname AS "created_by.employee.surname", e.second_surname AS "created_by.employee.second_surname",
 -- 	COALESCE(us.id, 0) AS "updated_by.id", us.employee_id AS "updated_by.employee_id"
 -- FROM exchange_rates er
 -- LEFT JOIN currencies c ON er.base_currency_id=c.id
@@ -21,7 +21,7 @@
 -- 	c.id AS "customer.id", c.first_name AS "customer.first_name", c.second_name AS "customer.second_name", c.third_name AS "customer.third_name", c.surname AS "customer.surname", c.second_surname AS "customer.second_surname", c.company_name AS "customer.company_name",
 -- 	u.id AS "user.id", u.employee_id AS "user.employee_id",
 -- 	cu.id AS "currency.id", cu.name AS "currency.name", cu.code AS "currency.code", cu.symbol AS "currency.symbol",
--- 	e.id AS "user.employee.id", e.first_name AS "user.employee.first_name", e.second_name AS "user.employee.second_name", e.third_name AS "user.employee.third_name", e.surname AS "user.employee.surname", e.second_surname AS "user.employee.second_surname",
+-- 	e.id AS "user.employee.id", e.names AS "user.employee.names", e.second_name AS "user.employee.second_name", e.third_name AS "user.employee.third_name", e.surname AS "user.employee.surname", e.second_surname AS "user.employee.second_surname",
 -- 	w.id AS "warehouse.id", w.branch_office_id AS "warehouse.branch_office_id", w.name AS "warehouse.name",
 -- 	bo.id AS "warehouse.branch_office.id", bo.company_id AS "warehouse.branch_office.company_id", bo.name AS "warehouse.branch_office.name",
 -- 	co.id AS "warehouse.branch_office.company.id", co.name AS "warehouse.branch_office.company.name", co.ruc AS "warehouse.branch_office.company.ruc"
@@ -45,7 +45,7 @@
 
 
 -- SELECT
---   p.id, p.name, p.brand_id, p.handle, p.description, p.featured_image_id, p.price, p.cost, p.tax_rate, p.quantity, p.sku, p.width, p.height, p.depth, p.liters, p.weight, p.barcode, p.rating, p.extra_shipping_fee, p.status,
+--   p.id, p.name, p.brand_id, p.handle, p.description, p.featured_image, p.price, p.cost, p.tax_rate, p.quantity, p.sku, p.width, p.height, p.depth, p.liters, p.weight, p.barcode, p.rating, p.extra_shipping_fee, p.status,
 --   COALESCE(b.id, 0) AS "brand.id", b.name AS "brand.name", b.status AS "brand.status",
 --   COALESCE(
 --     JSON_AGG(
@@ -70,7 +70,7 @@
 --   c.id AS "customer.id", c.first_name AS "customer.first_name", c.second_name AS "customer.second_name", c.third_name AS "customer.third_name", c.surname AS "customer.surname", c.second_surname AS "customer.second_surname", c.company_name AS "customer.company_name",
 --   u.id AS "user.id", u.employee_id AS "user.employee_id",
 --   cu.id AS "currency.id", cu.name AS "currency.name", cu.code AS "currency.code", cu.symbol AS "currency.symbol",
---   e.id AS "user.employee.id", e.first_name AS "user.employee.first_name", e.second_name AS "user.employee.second_name", e.third_name AS "user.employee.third_name", e.surname AS "user.employee.surname", e.second_surname AS "user.employee.second_surname",
+--   e.id AS "user.employee.id", e.names AS "user.employee.names", e.second_name AS "user.employee.second_name", e.third_name AS "user.employee.third_name", e.surname AS "user.employee.surname", e.second_surname AS "user.employee.second_surname",
 --   w.id AS "warehouse.id", w.branch_office_id AS "warehouse.branch_office_id", w.name AS "warehouse.name",
 --   bo.id AS "warehouse.branch_office.id", bo.company_id AS "warehouse.branch_office.company_id", bo.name AS "warehouse.branch_office.name",
 --   co.id AS "warehouse.branch_office.company.id", co.name AS "warehouse.branch_office.company.name", co.ruc AS "warehouse.branch_office.company.ruc",
@@ -102,7 +102,7 @@
 --   c.id AS "customer.id", c.first_name AS "customer.first_name", c.second_name AS "customer.second_name", c.third_name AS "customer.third_name", c.surname AS "customer.surname", c.second_surname AS "customer.second_surname", c.company_name AS "customer.company_name",
 --   u.id AS "user.id", u.employee_id AS "user.employee_id",
 --   cu.id AS "currency.id", cu.name AS "currency.name", cu.code AS "currency.code", cu.symbol AS "currency.symbol",
---   e.id AS "user.employee.id", e.first_name AS "user.employee.first_name", e.second_name AS "user.employee.second_name", e.third_name AS "user.employee.third_name", e.surname AS "user.employee.surname", e.second_surname AS "user.employee.second_surname",
+--   e.id AS "user.employee.id", e.names AS "user.employee.names", e.second_name AS "user.employee.second_name", e.third_name AS "user.employee.third_name", e.surname AS "user.employee.surname", e.second_surname AS "user.employee.second_surname",
 --   w.id AS "warehouse.id", w.branch_office_id AS "warehouse.branch_office_id", w.name AS "warehouse.name",
 --   bo.id AS "warehouse.branch_office.id", bo.company_id AS "warehouse.branch_office.company_id", bo.name AS "warehouse.branch_office.name",
 --   co.id AS "warehouse.branch_office.company.id", co.name AS "warehouse.branch_office.company.name", co.ruc AS "warehouse.branch_office.company.ruc",
@@ -142,9 +142,9 @@
 --   cr.id, cr.warehouse_id, cr.user_open_id, cr.user_close_id, cr.opening_date, cr.closing_date, cr.initial_amount, cr.closing_amount, cr.difference, cr.status,
 --   w.id AS "warehouse.id", w.name AS "warehouse.name",
 --   uo.id AS "user_open.id", uo.employee_id AS "user_open.employee_id",
---   eo.id AS "user_open.employee.id", eo.first_name AS "user_open.employee.first_name", eo.second_name AS "user_open.employee.second_name", eo.third_name AS "user_open.employee.third_name", eo.surname AS "user_open.employee.surname", eo.second_surname AS "user_open.employee.second_surname",
+--   eo.id AS "user_open.employee.id", eo.first_name AS "user_open.employee.names", eo.second_name AS "user_open.employee.second_name", eo.third_name AS "user_open.employee.third_name", eo.surname AS "user_open.employee.surname", eo.second_surname AS "user_open.employee.second_surname",
 --   COALESCE(uc.id, 0) AS "user_close.id", COALESCE(uc.employee_id, 0) AS "user_close.employee_id",
---   COALESCE(ec.id, 0) AS "user_close.employee.id", COALESCE(ec.first_name, '') AS "user_close.employee.first_name", COALESCE(ec.second_name, '') AS "user_close.employee.second_name", COALESCE(ec.third_name, '') AS "user_close.employee.third_name", COALESCE(ec.surname, '') AS "user_close.employee.surname", COALESCE(ec.second_surname, '') AS "user_close.employee.second_surname"
+--   COALESCE(ec.id, 0) AS "user_close.employee.id", COALESCE(ec.first_name, '') AS "user_close.employee.names", COALESCE(ec.second_name, '') AS "user_close.employee.second_name", COALESCE(ec.third_name, '') AS "user_close.employee.third_name", COALESCE(ec.surname, '') AS "user_close.employee.surname", COALESCE(ec.second_surname, '') AS "user_close.employee.second_surname"
 -- FROM cash_registers cr
 -- LEFT JOIN warehouses w ON cr.warehouse_id=w.id
 -- LEFT JOIN users uo ON cr.user_open_id=uo.id
@@ -160,7 +160,7 @@
 --   cr.id AS "cash_register.id",
 --   pm.id AS "payment_method.id", pm.name AS "payment_method.name",
 --   u.id AS "user.id", u.employee_id AS "user.employee_id",
---   eo.id AS "user.employee.id", eo.first_name AS "user.employee.first_name", eo.second_name AS "user.employee.second_name", eo.third_name AS "user.employee.third_name", eo.surname AS "user.employee.surname", eo.second_surname AS "user.employee.second_surname"
+--   eo.id AS "user.employee.id", eo.first_name AS "user.employee.names", eo.second_name AS "user.employee.second_name", eo.third_name AS "user.employee.third_name", eo.surname AS "user.employee.surname", eo.second_surname AS "user.employee.second_surname"
 -- FROM cash_movements cm
 -- LEFT JOIN cash_registers cr ON cm.cash_register_id=cr.id
 -- LEFT JOIN payment_methods pm ON cm.payment_method_id=pm.id
@@ -180,7 +180,7 @@
 
 
 -- SELECT 
---   e.id, e.first_name, e.second_name, e.third_name, e.surname, e.second_surname, e.photo, 
+--   e.id, e.names, e.surname, e.second_surname, e.photo, 
 --   e.warehouse_id, e.document_type, e.document_number, e.birth_date, e.gender, 
 --   e.email, e.phone, e.address, e.hire_date, e.job_position_id, e.salary, e.status,
 --   w.id AS "warehouse.id", w.name AS "warehouse.name", w.address AS "warehouse.address", w.status AS "warehouse.status", w.branch_office_id AS "warehouse.branch_office_id",
@@ -214,3 +214,19 @@ FROM companies c
 INNER JOIN subscriptions s ON c.id=s.company_id
 INNER JOIN plans p ON s.plan_id=p.id
 WHERE c.deleted_at IS NULL
+
+SELECT 
+  eb.id,
+  eb.employee_id,
+  e.names,
+  e.second_name,
+  e.surname,
+  eb.benefit_type,
+  eb.amount,
+  eb.start_date
+FROM 
+  employee_benefits eb
+INNER JOIN 
+  employees e ON eb.employee_id = e.id
+WHERE
+  eb.deleted_at IS NULL

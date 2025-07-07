@@ -3,7 +3,7 @@ package repository
 import (
 	"fmt"
 
-	"github.com/Jlenin5/facil_backend/internal/domain"
+	// "github.com/Jlenin5/facil_backend/internal/domain"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -17,23 +17,23 @@ func NewProductImageRepository(db *sqlx.DB) *ProductImageRepository {
 }
 
 // Obtener todas las imágenes de productos
-func (r *ProductImageRepository) GetAllProductImagess(productId int) ([]domain.ProductImages, error) {
-	var images []domain.ProductImages
+// func (r *ProductImageRepository) GetAllProductImagess(productId int) ([]domain.ProductImages, error) {
+// 	var images []domain.ProductImages
 
-	query := `
-		SELECT id, product_id, url, featured
-		FROM product_images
-		WHERE product_id = $1
-	`
+// 	query := `
+// 		SELECT id, product_id, url, featured
+// 		FROM product_images
+// 		WHERE product_id = $1
+// 	`
 
-	err := r.db.Select(&images, query, productId)
-	if err != nil {
-		fmt.Printf("Error al obtener imágenes del producto: %v\n", err)
-		return nil, err
-	}
+// 	err := r.db.Select(&images, query, productId)
+// 	if err != nil {
+// 		fmt.Printf("Error al obtener imágenes del producto: %v\n", err)
+// 		return nil, err
+// 	}
 
-	return images, nil
-}
+// 	return images, nil
+// }
 
 func (r *ProductImageRepository) DeleteProductImageByIds(imageId int) error {
 	query := `

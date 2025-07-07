@@ -7,7 +7,7 @@ type EmployeeReducedData struct {
 	Third_Name     NullString `json:"third_name"`
 	Surname        NullString `json:"surname"`
 	Second_Surname NullString `json:"second_surname"`
-	Warehouse_Id int `json:"warehouse_id"`
+	Warehouse_Id   int        `json:"warehouse_id"`
 }
 
 type UserReducedData struct {
@@ -111,6 +111,23 @@ type JobPositionReducedData struct {
 }
 
 type SystemReducedData struct {
+	Id   int    `json:"id"`
+	Name string `json:"name"`
+}
+
+type AbsenceTypeReducedData struct {
+	Id   int    `json:"id"`
+	Name string `json:"name"`
+	Code string `json:"code"`
+}
+
+type AttendanceTypeReducedData struct {
+	Id   int    `json:"id"`
+	Name string `json:"name"`
+	Code string `json:"code"`
+}
+
+type ScheduleReducedData struct {
 	Id   int    `json:"id"`
 	Name string `json:"name"`
 }

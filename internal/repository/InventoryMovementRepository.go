@@ -68,7 +68,7 @@ func (r *InventoryMovementRepository) GetAllInventoryMovements() ([]domain.Inven
 			WHERE id = $1 AND deleted_at IS NULL
 		`, inventoryMovement[i].Product_Id)
 		if err != nil && err != sql.ErrNoRows { // Manejar casos donde no hay producto asociado
-			fmt.Printf("Error obteniendo el producto para del control de stock %d: %v\n", inventoryMovement[i].Id, err)
+			fmt.Printf("Error obteniendo el producto para el control de stock %d: %v\n", inventoryMovement[i].Id, err)
 			return nil, err
 		}
 		inventoryMovement[i].Product = &product
@@ -76,7 +76,7 @@ func (r *InventoryMovementRepository) GetAllInventoryMovements() ([]domain.Inven
 		// Obtener usuario de la orden de venta
 		var user domain.Users
 		err = r.db.Get(&user, `
-			SELECT id, role_id, display_name, employee_id, photo_url, email, status FROM users WHERE id = $1 AND deleted_at IS NULL
+			SELECT id, role_id, username, employee_id, avatar, email, status FROM users WHERE id = $1 AND deleted_at IS NULL
 		`, inventoryMovement[i].User_Id)
 		if err != nil && err != sql.ErrNoRows { // Manejar casos donde no hay usuario asociado
 			fmt.Printf("Error obteniendo el usuario para la orden de venta %d: %v\n", inventoryMovement[i].Id, err)
@@ -88,7 +88,7 @@ func (r *InventoryMovementRepository) GetAllInventoryMovements() ([]domain.Inven
 		if user.Employee_Id.Valid {
 			var company domain.Employees
 			err = r.db.Get(&company, `
-				SELECT id, first_name, second_name, third_name, surname, second_surname, photo_url, warehouse_id, document_type, document_number, birth_date, gender, email, phone, address, hire_date, position, salary, status
+				SELECT id, first_name, second_name, third_name, surname, second_surname, photo, warehouse_id, document_type, document_number, birth_date, gender, email, phone, address, hire_date, job_position_id, salary, status
 				FROM employees 
 				WHERE id = $1 AND deleted_at IS NULL
 			`, user.Employee_Id)
@@ -137,7 +137,7 @@ func (r *InventoryMovementRepository) GetInventoryMovementById(id int) (*domain.
 		WHERE id = $1 AND deleted_at IS NULL
 	`, inventoryMovement.Product_Id)
 	if err != nil && err != sql.ErrNoRows { // Manejar casos donde no hay producto asociado
-		fmt.Printf("Error obteniendo el producto para del control de stock %d: %v\n", inventoryMovement.Id, err)
+		fmt.Printf("Error obteniendo el producto para el control de stock %d: %v\n", inventoryMovement.Id, err)
 		return nil, err
 	}
 	inventoryMovement.Product = &product
@@ -145,7 +145,7 @@ func (r *InventoryMovementRepository) GetInventoryMovementById(id int) (*domain.
 	// Obtener usuario de la orden de venta
 	var user domain.Users
 	err = r.db.Get(&user, `
-		SELECT id, role_id, display_name, employee_id, photo_url, email, status FROM users WHERE id = $1 AND deleted_at IS NULL
+		SELECT id, role_id, username, employee_id, avatar, email, status FROM users WHERE id = $1 AND deleted_at IS NULL
 	`, inventoryMovement.User_Id)
 	if err != nil && err != sql.ErrNoRows { // Manejar casos donde no hay usuario asociado
 		fmt.Printf("Error obteniendo el usuario para la orden de venta %d: %v\n", inventoryMovement.Id, err)
@@ -157,7 +157,7 @@ func (r *InventoryMovementRepository) GetInventoryMovementById(id int) (*domain.
 	if user.Employee_Id.Valid {
 		var company domain.Employees
 		err = r.db.Get(&company, `
-			SELECT id, first_name, second_name, third_name, surname, second_surname, photo_url, warehouse_id, document_type, document_number, birth_date, gender, email, phone, address, hire_date, position, salary, status
+			SELECT id, first_name, second_name, third_name, surname, second_surname, photo, warehouse_id, document_type, document_number, birth_date, gender, email, phone, address, hire_date, job_position_id, salary, status
 			FROM employees 
 			WHERE id = $1 AND deleted_at IS NULL
 		`, user.Employee_Id)

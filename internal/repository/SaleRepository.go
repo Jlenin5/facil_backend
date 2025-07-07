@@ -326,7 +326,7 @@ func querySelectSale(whereClause string) string {
 			c.id AS "customer.id", c.first_name AS "customer.first_name", c.second_name AS "customer.second_name", c.third_name AS "customer.third_name", c.surname AS "customer.surname", c.second_surname AS "customer.second_surname", c.company_name AS "customer.company_name", c.document_number AS "customer.document_number", COALESCE(c.phone, '') AS "customer.phone", COALESCE(c.address, '') AS "customer.address",
 			u.id AS "user.id", u.employee_id AS "user.employee_id",
 			cu.id AS "currency.id", cu.name AS "currency.name", cu.code AS "currency.code", cu.symbol AS "currency.symbol",
-			e.id AS "user.employee.id", e.first_name AS "user.employee.first_name", e.second_name AS "user.employee.second_name", e.third_name AS "user.employee.third_name", e.surname AS "user.employee.surname", e.second_surname AS "user.employee.second_surname",
+			e.id AS "user.employee.id", e.names AS "user.employee.names", e.surname AS "user.employee.surname", e.second_surname AS "user.employee.second_surname",
 			w.id AS "warehouse.id", w.branch_office_id AS "warehouse.branch_office_id", w.name AS "warehouse.name",
 			bo.id AS "warehouse.branch_office.id", bo.company_id AS "warehouse.branch_office.company_id", bo.name AS "warehouse.branch_office.name",
 			co.id AS "warehouse.branch_office.company.id", co.name AS "warehouse.branch_office.company.name", co.ruc AS "warehouse.branch_office.company.ruc", co.email AS "warehouse.branch_office.company.email", co.phone AS "warehouse.branch_office.company.phone", co.address AS "warehouse.branch_office.company.address",

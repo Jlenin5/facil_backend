@@ -4,9 +4,7 @@ import "time"
 
 type Employees struct {
 	Id              int                     `db:"id" json:"id"`
-	First_Name      string                  `db:"first_name" json:"first_name"`
-	Second_Name     NullString              `db:"second_name" json:"second_name"`
-	Third_Name      NullString              `db:"third_name" json:"third_name"`
+	Names      string                  `db:"names" json:"names"`
 	Surname         NullString              `db:"surname" json:"surname"`
 	Second_Surname  NullString              `db:"second_surname" json:"second_surname"`
 	Photo           NullString              `db:"photo" json:"photo"`

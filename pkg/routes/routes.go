@@ -2,7 +2,9 @@ package routes
 
 import (
 	"github.com/Jlenin5/facil_backend/internal/usecase"
+	usecaseHumanresources "github.com/Jlenin5/facil_backend/internal/usecase/human-resources"
 	"github.com/Jlenin5/facil_backend/pkg/handlers"
+	handlersHumanresources "github.com/Jlenin5/facil_backend/pkg/handlers/human-resources"
 	"github.com/gorilla/mux"
 )
 
@@ -130,6 +132,182 @@ func ExchangeRateRoutes(router *mux.Router, exchangeRateUC *usecase.ExchangeRate
 	router.HandleFunc("/exchange-rates/{id}", handler.UpdateExchangeRate).Methods("PUT")
 	router.HandleFunc("/exchange-rates/{id}", handler.DeleteExchangeRateById).Methods("DELETE")
 	router.HandleFunc("/exchange-rates", handler.DeleteExchangeRatesByIds).Methods("DELETE")
+}
+
+// attendance
+func AttendanceRoutes(router *mux.Router, attendanceTypeUC *usecaseHumanresources.AttendanceUseCase) {
+	handler := handlersHumanresources.NewAttendanceHandler(attendanceTypeUC)
+	router.HandleFunc("/attendances", handler.GetAll).Methods("GET")
+	router.HandleFunc("/attendances/{id}", handler.GetById).Methods("GET")
+	router.HandleFunc("/attendances", handler.Create).Methods("POST")
+	router.HandleFunc("/attendances/{id}", handler.Update).Methods("PUT")
+	router.HandleFunc("/attendances/{id}", handler.DeleteById).Methods("DELETE")
+	// router.HandleFunc("/attendances", handler.DeleteAttendancesByIds).Methods("DELETE")
+}
+
+// attendance types
+func AttendanceTypeRoutes(router *mux.Router, attendanceTypeUC *usecaseHumanresources.AttendanceTypeUseCase) {
+	handler := handlersHumanresources.NewAttendanceTypeHandler(attendanceTypeUC)
+	router.HandleFunc("/attendance-types", handler.GetAll).Methods("GET")
+	router.HandleFunc("/attendance-types/{id}", handler.GetById).Methods("GET")
+	router.HandleFunc("/attendance-types", handler.Create).Methods("POST")
+	router.HandleFunc("/attendance-types/{id}", handler.Update).Methods("PUT")
+	router.HandleFunc("/attendance-types/{id}", handler.DeleteById).Methods("DELETE")
+	router.HandleFunc("/attendance-types", handler.DeleteByIds).Methods("DELETE")
+}
+
+// absence types
+func AbsenceTypeRoutes(router *mux.Router, absenceTypeUC *usecaseHumanresources.AbsenceTypeUseCase) {
+	handler := handlersHumanresources.NewAbsenceTypeHandler(absenceTypeUC)
+	router.HandleFunc("/absence-types", handler.GetAll).Methods("GET")
+	router.HandleFunc("/absence-types/{id}", handler.GetById).Methods("GET")
+	router.HandleFunc("/absence-types", handler.Create).Methods("POST")
+	router.HandleFunc("/absence-types/{id}", handler.Update).Methods("PUT")
+	router.HandleFunc("/absence-types/{id}", handler.DeleteById).Methods("DELETE")
+	// router.HandleFunc("/absence-types", handler.DeleteAbsenceTypesByIds).Methods("DELETE")
+}
+
+// absence requests
+func AbsenceRequestRoutes(router *mux.Router, absenceRequestUC *usecaseHumanresources.AbsenceRequestUseCase) {
+	handler := handlersHumanresources.NewAbsenceRequestHandler(absenceRequestUC)
+	router.HandleFunc("/absence-requests", handler.GetAll).Methods("GET")
+	router.HandleFunc("/absence-requests/{id}", handler.GetById).Methods("GET")
+	router.HandleFunc("/absence-requests", handler.Create).Methods("POST")
+	router.HandleFunc("/absence-requests/{id}", handler.Update).Methods("PUT")
+	router.HandleFunc("/absence-requests/{id}", handler.DeleteById).Methods("DELETE")
+	// router.HandleFunc("/absence-requests", handler.DeleteAbsenceRequestsByIds).Methods("DELETE")
+}
+
+// employee benefits
+func EmployeeBenefitRoutes(router *mux.Router, employeeBenefitUC *usecaseHumanresources.EmployeeBenefitUseCase) {
+	handler := handlersHumanresources.NewEmployeeBenefitHandler(employeeBenefitUC)
+	router.HandleFunc("/employee-benefits", handler.GetAll).Methods("GET")
+	router.HandleFunc("/employee-benefits/{id}", handler.GetById).Methods("GET")
+	router.HandleFunc("/employee-benefits", handler.Create).Methods("POST")
+	router.HandleFunc("/employee-benefits/{id}", handler.Update).Methods("PUT")
+	router.HandleFunc("/employee-benefits/{id}", handler.DeleteById).Methods("DELETE")
+	// router.HandleFunc("/employee-benefits", handler.DeleteEmployeeBenefitsByIds).Methods("DELETE")
+}
+
+// employee incidents
+func EmployeeIncidentRoutes(router *mux.Router, employeeIncidentUC *usecaseHumanresources.EmployeeIncidentUseCase) {
+	handler := handlersHumanresources.NewEmployeeIncidentHandler(employeeIncidentUC)
+	router.HandleFunc("/employee-incidents", handler.GetAll).Methods("GET")
+	router.HandleFunc("/employee-incidents/{id}", handler.GetById).Methods("GET")
+	router.HandleFunc("/employee-incidents", handler.Create).Methods("POST")
+	router.HandleFunc("/employee-incidents/{id}", handler.Update).Methods("PUT")
+	router.HandleFunc("/employee-incidents/{id}", handler.DeleteById).Methods("DELETE")
+	// router.HandleFunc("/employee-incidents", handler.DeleteEmployeeIncidentsByIds).Methods("DELETE")
+}
+
+// employee schedules
+func EmployeeScheduleRoutes(router *mux.Router, employeeScheduleUC *usecaseHumanresources.EmployeeScheduleUseCase) {
+	handler := handlersHumanresources.NewEmployeeScheduleHandler(employeeScheduleUC)
+	router.HandleFunc("/employee-schedules", handler.GetAll).Methods("GET")
+	router.HandleFunc("/employee-schedules/{id}", handler.GetById).Methods("GET")
+	router.HandleFunc("/employee-schedules", handler.Create).Methods("POST")
+	router.HandleFunc("/employee-schedules/{id}", handler.Update).Methods("PUT")
+	router.HandleFunc("/employee-schedules/{id}", handler.DeleteById).Methods("DELETE")
+	// router.HandleFunc("/employee-schedules", handler.DeleteEmployeeSchedulesByIds).Methods("DELETE")
+}
+
+// holidays
+func HolidayRoutes(router *mux.Router, holidayUC *usecaseHumanresources.HolidayUseCase) {
+	handler := handlersHumanresources.NewHolidayHandler(holidayUC)
+	router.HandleFunc("/holidays", handler.GetAll).Methods("GET")
+	router.HandleFunc("/holidays/{id}", handler.GetById).Methods("GET")
+	router.HandleFunc("/holidays", handler.Create).Methods("POST")
+	router.HandleFunc("/holidays/{id}", handler.Update).Methods("PUT")
+	router.HandleFunc("/holidays/{id}", handler.DeleteById).Methods("DELETE")
+	// router.HandleFunc("/holidays", handler.DeleteHolidaysByIds).Methods("DELETE")
+}
+
+// overtime requests
+func OvertimeRequestRoutes(router *mux.Router, overtimeRequestUC *usecaseHumanresources.OvertimeRequestUseCase) {
+	handler := handlersHumanresources.NewOvertimeRequestHandler(overtimeRequestUC)
+	router.HandleFunc("/overtime-requests", handler.GetAll).Methods("GET")
+	router.HandleFunc("/overtime-requests/{id}", handler.GetById).Methods("GET")
+	router.HandleFunc("/overtime-requests", handler.Create).Methods("POST")
+	router.HandleFunc("/overtime-requests/{id}", handler.Update).Methods("PUT")
+	router.HandleFunc("/overtime-requests/{id}", handler.DeleteById).Methods("DELETE")
+	// router.HandleFunc("/overtime-requests", handler.DeleteOvertimeRequestsByIds).Methods("DELETE")
+}
+
+// payroll
+func PayrollRoutes(router *mux.Router, payrollUC *usecaseHumanresources.PayrollUseCase) {
+	handler := handlersHumanresources.NewPayrollHandler(payrollUC)
+	router.HandleFunc("/payroll", handler.GetAll).Methods("GET")
+	// router.HandleFunc("/payroll/{id}", handler.GetPayrollById).Methods("GET")
+	// router.HandleFunc("/payroll", handler.CreatePayroll).Methods("POST")
+	// router.HandleFunc("/payroll/{id}", handler.UpdatePayroll).Methods("PUT")
+	// router.HandleFunc("/payroll/{id}", handler.DeletePayrollById).Methods("DELETE")
+	// router.HandleFunc("/payroll", handler.DeletePayrollsByIds).Methods("DELETE")
+}
+
+// payroll detail
+func PayrollDetailRoutes(router *mux.Router, payrollDetailUC *usecaseHumanresources.PayrollDetailUseCase) {
+	handler := handlersHumanresources.NewPayrollDetailHandler(payrollDetailUC)
+	router.HandleFunc("/payroll-detail", handler.GetAll).Methods("GET")
+	// router.HandleFunc("/payroll-detail/{id}", handler.GetPayrollDetailById).Methods("GET")
+	// router.HandleFunc("/payroll-detail", handler.CreatePayrollDetail).Methods("POST")
+	// router.HandleFunc("/payroll-detail/{id}", handler.UpdatePayrollDetail).Methods("PUT")
+	// router.HandleFunc("/payroll-detail/{id}", handler.DeletePayrollDetailById).Methods("DELETE")
+	// router.HandleFunc("/payroll-detail", handler.DeletePayrollDetailsByIds).Methods("DELETE")
+}
+
+// performance reviews
+func PerformanceReviewRoutes(router *mux.Router, performanceReviewUC *usecaseHumanresources.PerformanceReviewUseCase) {
+	handler := handlersHumanresources.NewPerformanceReviewHandler(performanceReviewUC)
+	router.HandleFunc("/performance-reviews", handler.GetAll).Methods("GET")
+	router.HandleFunc("/performance-reviews/{id}", handler.GetById).Methods("GET")
+	router.HandleFunc("/performance-reviews", handler.Create).Methods("POST")
+	router.HandleFunc("/performance-reviews/{id}", handler.Update).Methods("PUT")
+	router.HandleFunc("/performance-reviews/{id}", handler.DeleteById).Methods("DELETE")
+	// router.HandleFunc("/performance-reviews", handler.DeletePerformanceReviewsByIds).Methods("DELETE")
+}
+
+// schedule detail
+func ScheduleDetailRoutes(router *mux.Router, scheduleDetailUC *usecaseHumanresources.ScheduleDetailUseCase) {
+	handler := handlersHumanresources.NewScheduleDetailHandler(scheduleDetailUC)
+	router.HandleFunc("/schedule-detail", handler.GetAll).Methods("GET")
+	// router.HandleFunc("/schedule-detail/{id}", handler.GetScheduleDetailById).Methods("GET")
+	// router.HandleFunc("/schedule-detail", handler.CreateScheduleDetail).Methods("POST")
+	// router.HandleFunc("/schedule-detail/{id}", handler.UpdateScheduleDetail).Methods("PUT")
+	// router.HandleFunc("/schedule-detail/{id}", handler.DeleteScheduleDetailById).Methods("DELETE")
+	// router.HandleFunc("/schedule-detail", handler.DeleteScheduleDetailsByIds).Methods("DELETE")
+}
+
+// vacations
+func VacationRoutes(router *mux.Router, vacationsUC *usecaseHumanresources.VacationUseCase) {
+	handler := handlersHumanresources.NewVacationHandler(vacationsUC)
+	router.HandleFunc("/vacations", handler.GetAll).Methods("GET")
+	router.HandleFunc("/vacations/{id}", handler.GetById).Methods("GET")
+	router.HandleFunc("/vacations", handler.Create).Methods("POST")
+	router.HandleFunc("/vacations/{id}", handler.Update).Methods("PUT")
+	router.HandleFunc("/vacations/{id}", handler.DeleteById).Methods("DELETE")
+	// router.HandleFunc("/vacations", handler.DeleteVacationsByIds).Methods("DELETE")
+}
+
+// vacation balances
+func VacationBalanceRoutes(router *mux.Router, vacationBalanceUC *usecaseHumanresources.VacationBalanceUseCase) {
+	handler := handlersHumanresources.NewVacationBalanceHandler(vacationBalanceUC)
+	router.HandleFunc("/vacation-balances", handler.GetAll).Methods("GET")
+	router.HandleFunc("/vacation-balances/{id}", handler.GetById).Methods("GET")
+	router.HandleFunc("/vacation-balances", handler.Create).Methods("POST")
+	router.HandleFunc("/vacation-balances/{id}", handler.Update).Methods("PUT")
+	router.HandleFunc("/vacation-balances/{id}", handler.DeleteById).Methods("DELETE")
+	// router.HandleFunc("/vacation-balances", handler.DeleteVacationBalancesByIds).Methods("DELETE")
+}
+
+// work schedules
+func WorkScheduleRoutes(router *mux.Router, WorkScheduleUC *usecaseHumanresources.WorkScheduleUseCase) {
+	handler := handlersHumanresources.NewWorkScheduleHandler(WorkScheduleUC)
+	router.HandleFunc("/work-schedules", handler.GetAll).Methods("GET")
+	router.HandleFunc("/work-schedules/{id}", handler.GetById).Methods("GET")
+	router.HandleFunc("/work-schedules", handler.Create).Methods("POST")
+	router.HandleFunc("/work-schedules/{id}", handler.Update).Methods("PUT")
+	router.HandleFunc("/work-schedules/{id}", handler.DeleteById).Methods("DELETE")
+	// router.HandleFunc("/work-schedules", handler.DeleteWorkSchedulesByIds).Methods("DELETE")
 }
 
 // inventory movements

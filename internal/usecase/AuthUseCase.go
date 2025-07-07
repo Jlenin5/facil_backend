@@ -174,9 +174,7 @@ func transformUser(user *domain.Users) (map[string]interface{}, error) {
 	if user.Employee != nil {
 		employee = map[string]interface{}{
 			"id":              user.Employee.Id,
-			"first_name":      user.Employee.First_Name,
-			"second_name":     user.Employee.Second_Name,
-			"third_name":      user.Employee.Third_Name,
+			"names":      user.Employee.Names,
 			"surname":         user.Employee.Surname,
 			"second_surname":  user.Employee.Second_Surname,
 			"document_number": user.Employee.Document_Number,

@@ -84,7 +84,7 @@ func (r *PurchaseRequestRepository) GetAllPurchaseRequests() ([]domain.PurchaseR
 		// Obtener usuario de la orden de venta
 		var user domain.Users
 		err = r.db.Get(&user, `
-			SELECT id, role_id, display_name, photo_url, email, status FROM users WHERE id = $1 AND deleted_at IS NULL
+			SELECT id, role_id, username, avatar, email, status FROM users WHERE id = $1 AND deleted_at IS NULL
 		`, purchaseRequests[i].User_Id)
 		if err != nil && err != sql.ErrNoRows { // Manejar casos donde no hay usuario asociado
 			fmt.Printf("Error obteniendo el usuario para la orden de venta %d: %v\n", purchaseRequests[i].Id, err)
@@ -141,7 +141,7 @@ func (r *PurchaseRequestRepository) GetPurchaseRequestById(orderId int) (*domain
 	// Obtener usuario de la orden de venta
 	var user domain.Users
 	err = r.db.Get(&user, `
-		SELECT id, role_id, display_name, employee_id, photo_url, email, status FROM users WHERE id = $1 AND deleted_at IS NULL
+		SELECT id, role_id, username, employee_id, avatar, email, status FROM users WHERE id = $1 AND deleted_at IS NULL
 	`, purchaseRequests.User_Id)
 	if err != nil && err != sql.ErrNoRows { // Manejar casos donde no hay usuario asociado
 		fmt.Printf("Error obteniendo usuario para la orden de venta %d: %v\n", orderId, err)

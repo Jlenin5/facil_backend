@@ -43,9 +43,9 @@ func (r *CashRegisterRepository) GetAllCashRegisters() ([]domain.CashRegisters, 
 			cr.id, cr.warehouse_id, cr.user_open_id, cr.user_close_id, cr.opening_date, cr.closing_date, cr.initial_amount, cr.closing_amount, cr.difference, cr.status,
 			w.id AS "warehouse.id", w.name AS "warehouse.name",
 			uo.id AS "user_open.id", uo.employee_id AS "user_open.employee_id",
-			eo.id AS "user_open.employee.id", eo.first_name AS "user_open.employee.first_name", eo.second_name AS "user_open.employee.second_name", eo.third_name AS "user_open.employee.third_name", eo.surname AS "user_open.employee.surname", eo.second_surname AS "user_open.employee.second_surname",
+			eo.id AS "user_open.employee.id", eo.names AS "user_open.employee.names", eo.surname AS "user_open.employee.surname", eo.second_surname AS "user_open.employee.second_surname",
 			COALESCE(uc.id, 0) AS "user_close.id", COALESCE(uc.employee_id, 0) AS "user_close.employee_id",
-			COALESCE(ec.id, 0) AS "user_close.employee.id", COALESCE(ec.first_name, '') AS "user_close.employee.first_name", COALESCE(ec.second_name, '') AS "user_close.employee.second_name", COALESCE(ec.third_name, '') AS "user_close.employee.third_name", COALESCE(ec.surname, '') AS "user_close.employee.surname", COALESCE(ec.second_surname, '') AS "user_close.employee.second_surname"
+			COALESCE(ec.id, 0) AS "user_close.employee.id", COALESCE(ec.names, '') AS "user_close.employee.names", COALESCE(ec.surname, '') AS "user_close.employee.surname", COALESCE(ec.second_surname, '') AS "user_close.employee.second_surname"
 		FROM cash_registers cr
 		LEFT JOIN warehouses w ON cr.warehouse_id=w.id
 		LEFT JOIN users uo ON cr.user_open_id=uo.id
@@ -72,9 +72,9 @@ func (r *CashRegisterRepository) GetCashRegisterById(cashRegisterId int) (*domai
 			cr.id, cr.warehouse_id, cr.user_open_id, cr.user_close_id, cr.opening_date, cr.closing_date, cr.initial_amount, cr.closing_amount, cr.difference, cr.status,
 			w.id AS "warehouse.id", w.name AS "warehouse.name",
 			uo.id AS "user_open.id", uo.employee_id AS "user_open.employee_id",
-			eo.id AS "user_open.employee.id", eo.first_name AS "user_open.employee.first_name", eo.second_name AS "user_open.employee.second_name", eo.third_name AS "user_open.employee.third_name", eo.surname AS "user_open.employee.surname", eo.second_surname AS "user_open.employee.second_surname",
+			eo.id AS "user_open.employee.id", eo.names AS "user_open.employee.names", eo.surname AS "user_open.employee.surname", eo.second_surname AS "user_open.employee.second_surname",
 			COALESCE(uc.id, 0) AS "user_close.id", COALESCE(uc.employee_id, 0) AS "user_close.employee_id",
-			COALESCE(ec.id, 0) AS "user_close.employee.id", COALESCE(ec.first_name, '') AS "user_close.employee.first_name", COALESCE(ec.second_name, '') AS "user_close.employee.second_name", COALESCE(ec.third_name, '') AS "user_close.employee.third_name", COALESCE(ec.surname, '') AS "user_close.employee.surname", COALESCE(ec.second_surname, '') AS "user_close.employee.second_surname"
+			COALESCE(ec.id, 0) AS "user_close.employee.id", COALESCE(ec.names, '') AS "user_close.employee.names", COALESCE(ec.surname, '') AS "user_close.employee.surname", COALESCE(ec.second_surname, '') AS "user_close.employee.second_surname"
 		FROM cash_registers cr
 		LEFT JOIN warehouses w ON cr.warehouse_id=w.id
 		LEFT JOIN users uo ON cr.user_open_id=uo.id
