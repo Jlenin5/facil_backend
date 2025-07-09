@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"net/http"
+	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -50,6 +51,38 @@ func JWTAuthMiddleware(secretKey []byte) func(http.Handler) http.Handler {
 			// Guardar los datos del usuario en el contexto
 			ctx := context.WithValue(r.Context(), UserContextKey, userData)
 			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
+
+func OptionalJWTAuthMiddleware(secretKey []byte) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Intentar obtener el token del header
+			authHeader := r.Header.Get("Authorization")
+			if authHeader != "" {
+				// Extraer el token del header
+				tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+				if tokenString != authHeader { // Si encontró el prefijo Bearer
+					// Parsear y validar el token
+					token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+						if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+							return nil, jwt.ErrSignatureInvalid
+						}
+						return secretKey, nil
+					})
+
+					if err == nil && token.Valid {
+						// Si el token es válido, agregar claims al contexto
+						if claims, ok := token.Claims.(jwt.MapClaims); ok {
+							ctx := context.WithValue(r.Context(), UserContextKey, claims)
+							r = r.WithContext(ctx)
+						}
+					}
+					// Si hay error o token inválido, continuar sin usuario en el contexto
+				}
+			}
+			next.ServeHTTP(w, r)
 		})
 	}
 }

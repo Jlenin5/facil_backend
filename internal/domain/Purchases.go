@@ -34,7 +34,7 @@ type Purchases struct {
 	Notes               NullString                `db:"notes" json:"notes"`
 	PurchaseDetails     []PurchaseDetails         `json:"purchase_details"`
 	Created_at          time.Time                 `db:"created_at" json:"-"`
-	Updated_at          time.Time                 `db:"updated_at" json:"-"`
+	Updated_at          NullTime                  `db:"updated_at" json:"-"`
 	Deleted_at          NullTime                  `db:"deleted_at" json:"-"`
 }
 

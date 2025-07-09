@@ -391,6 +391,7 @@ func ProductRoutes(router *mux.Router, productUC *usecase.ProductUseCase) {
 	router.HandleFunc("/products/{id}", handler.UpdateProduct).Methods("PUT")
 	router.HandleFunc("/products/{id}", handler.DeleteProductById).Methods("DELETE")
 	router.HandleFunc("/products", handler.DeleteProductsByIds).Methods("DELETE")
+	router.HandleFunc("/products/import-excel", handler.ImportExcel).Methods("POST")
 }
 
 // purchases
@@ -508,6 +509,17 @@ func TaxRoutes(router *mux.Router, taxUC *usecase.TaxUseCase) {
 	router.HandleFunc("/taxes/{id}", handler.UpdateTax).Methods("PUT")
 	router.HandleFunc("/taxes/{id}", handler.DeleteTaxById).Methods("DELETE")
 	router.HandleFunc("/taxes", handler.DeleteTaxesByIds).Methods("DELETE")
+}
+
+// units of measurement
+func UnitOfMeasurementRoutes(router *mux.Router, taxUC *usecase.UnitOfMeasurementUseCase) {
+	handler := handlers.NewUnitOfMeasurementHandler(taxUC)
+	router.HandleFunc("/units-of-measurement", handler.GetAllUnitsOfMeasurement).Methods("GET")
+	router.HandleFunc("/units-of-measurement/{id}", handler.GetUnitOfMeasurementById).Methods("GET")
+	router.HandleFunc("/units-of-measurement", handler.CreateUnitOfMeasurement).Methods("POST")
+	router.HandleFunc("/units-of-measurement/{id}", handler.UpdateUnitOfMeasurement).Methods("PUT")
+	router.HandleFunc("/units-of-measurement/{id}", handler.DeleteUnitOfMeasurementById).Methods("DELETE")
+	router.HandleFunc("/units-of-measurement", handler.DeleteUnitsOfMeasurementByIds).Methods("DELETE")
 }
 
 // users

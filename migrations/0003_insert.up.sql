@@ -240,21 +240,26 @@ INSERT INTO brands (id, name, description, logo_url, website_url, status, create
 (30, 'Sargent', 'Proveedor de soluciones de seguridad mecánicas y electrónicas.', 'https://example.com/logos/sargent.png', 'https://www.sargentlock.com', B'1', 1);
 
 -- Insertar datos en la tabla units_of_measurement
-INSERT INTO units_of_measurement (id, name, description, status, created_by) VALUES
-(1, 'Unidad', 'Producto vendido por unidades individuales', B'1', 1),
-(2, 'Juego', 'Conjunto de piezas que se venden como un paquete', B'1', 1),
-(3, 'Paquete', 'Varios items empaquetados juntos', B'1', 1),
-(4, 'Metro', 'Medida de longitud', B'1', 1),
-(5, 'Kilogramo', 'Medida de peso', B'1', 1);
+INSERT INTO units_of_measurement (id, name, shortcut, description, status, created_by) VALUES
+(1, 'Unidad', 'und', 'Producto vendido por unidades individuales', B'1', 1),
+(2, 'Juego', 'kit', 'Conjunto de piezas que se venden como un paquete completo', B'1', 1),
+(3, 'Paquete', 'pqte', 'Varios artículos empaquetados juntos como una unidad de venta', B'1', 1),
+(4, 'Caja', 'caja', 'Contenedor con múltiples unidades, paquetes o juegos', B'1', 1),
+(5, 'Docena', 'doc', 'Conjunto de doce unidades del mismo producto', B'1', 1),
+(6, 'Metro lineal', 'ml', 'Medida de longitud en metros', B'1', 1),
+(7, 'Metro cuadrado', 'm²', 'Medida de área o superficie', B'1', 1),
+(8, 'Kilogramo', 'kg', 'Medida de peso/masa equivalente a 1000 gramos', B'1', 1),
+(9, 'Gramo', 'g', 'Medida de peso/masa', B'1', 1),
+(10, 'Litro', 'lt', 'Medida de volumen para líquidos', B'1', 1);
 
 -- Insertar datos en la tabla products
 INSERT INTO products (
-    id, name, brand_id, handle, description, tags, featured_image, images, 
+    id, name, brand_id, unit_of_measurement_id, handle, description, tags, featured_image, images, 
     prices_cf, cost, tax_rate, quantity, sku, width, height, depth, weight, 
     barcode, extra_shipping_fee, status, created_by
 ) VALUES 
 (1, 
-    'Cerradura de Embutir Yale Superior', 6, 'cerradura-embutir-yale-superior', 
+    'Cerradura de Embutir Yale Superior', 6, 1, 'cerradura-embutir-yale-superior', 
     'Cerradura de embutir de alta seguridad con 5 puntos de anclaje. Ideal para puertas de entrada.', 
     '["seguridad", "puerta principal", "5 puntos"]'::jsonb, 'img-01',
     '[{"url":"uploads/images/products/01-320x200.jpg","featured":"img-01"}]'::jsonb,
@@ -364,7 +369,7 @@ INSERT INTO products (
     '123456789012', 5.00, B'1', 1
 ),
 (2, 
-    'Candado ABUS Granit Plus', 8, 'candado-abus-granit-plus',
+    'Candado ABUS Granit Plus', 8, 2, 'candado-abus-granit-plus',
     'Candado de seguridad Granit Plus con protección contra cortes y palancas. Nivel de seguridad 10.',
     '["alta seguridad", "antirobo", "exterior"]'::jsonb, 'img-02',
     '[{"url":"uploads/images/products/02-320x200.jpg","featured":"img-02"}]'::jsonb,
@@ -474,7 +479,7 @@ INSERT INTO products (
     '987654321098', 3.50, B'1', 1
 ),
 (3, 
-    'Cilindro Mul-T-Lock Interactive', 2, 'cilindro-multlock-interactive',
+    'Cilindro Mul-T-Lock Interactive', 2, 3, 'cilindro-multlock-interactive',
     'Cilindro de alta seguridad con tecnología Interactive. Protección contra bumping y picking.',
     '["alta seguridad", "antimanipulación", "cilindro europeo"]'::jsonb, 'img-03',
     '[{"url":"uploads/images/products/03-320x200.jpg","featured":"img-03"}]'::jsonb,
@@ -584,7 +589,7 @@ INSERT INTO products (
     '456789012345', 2.00, B'1', 1
 ),
 (4, 
-    'Cerrojo Electrónico Schlage Encode', 5, 'cerrojo-electronico-schlage-encode',
+    'Cerrojo Electrónico Schlage Encode', 5, 4, 'cerrojo-electronico-schlage-encode',
     'Cerrojo electrónico con WiFi integrado y apertura mediante smartphone. Compatible con asistentes de voz.',
     '["inteligente", "wifi", "huella digital", "teclado"]'::jsonb, 'img-04',
     '[{"url":"uploads/images/products/04-320x200.jpg","featured":"img-04"}]'::jsonb,
@@ -694,7 +699,7 @@ INSERT INTO products (
     '789012345678', 8.00, B'1', 1
 ),
 (5, 
-    'Juego de Llaves Controladas Medeco', 3, 'juego-llaves-controladas-medeco',
+    'Juego de Llaves Controladas Medeco', 3, 5, 'juego-llaves-controladas-medeco',
     'Juego de 5 llaves controladas con sistema de seguridad patentado. Incluye tarjeta de registro.',
     '["llaves controladas", "alta seguridad", "kit"]'::jsonb, 'img-05',
     '[{"url":"uploads/images/products/10-320x200.jpg","featured":"img-05"}]'::jsonb,
@@ -804,7 +809,7 @@ INSERT INTO products (
     '234567890123', 2.50, B'1', 1
 ),
 (6, 
-    'Producto 1 de Alta Seguridad', 1, 'producto-1-alta-seguridad',
+    'Producto 1 de Alta Seguridad', 1, 6, 'producto-1-alta-seguridad',
     'Descripción del Producto 1 con características avanzadas.',
     '["seguridad", "producto 1", "avanzado"]'::jsonb, 'img-01',
     '[{"url":"uploads/images/products/01-320x200.jpg","featured":"img-01"}]'::jsonb,
@@ -913,7 +918,7 @@ INSERT INTO products (
     20, 18.00, 10, 'PROD-001', 5.0, 5.0, 5.0, 1.0,
     '000000000001', 2.00, B'1', 1
 ),
-(7, 'Producto 2 de Alta Seguridad', 2, 'producto-2-alta-seguridad',
+(7, 'Producto 2 de Alta Seguridad', 2, 7, 'producto-2-alta-seguridad',
 'Descripción del Producto 2 con características avanzadas.',
 '["seguridad", "producto 2", "avanzado"]'::jsonb,
 'img-02',
@@ -1022,7 +1027,7 @@ INSERT INTO products (
 ]'::jsonb,
 22, .00, 20, 'PROD-002', 6.0, 6.0, 6.0, 1.2,
 '000000000002', 2.50, B'1', 1),
-(8, 'Producto 3 de Alta Seguridad', 3, 'producto-3-alta-seguridad',
+(8, 'Producto 3 de Alta Seguridad', 3, 8, 'producto-3-alta-seguridad',
 'Descripción del Producto 3 con características avanzadas.',
 '["seguridad", "producto 3", "avanzado"]'::jsonb,
 'img-03',
@@ -1131,7 +1136,7 @@ INSERT INTO products (
 ]'::jsonb,
 24, .00, 30, 'PROD-003', 7.0, 7.0, 7.0, 1.5,
 '000000000003', 3.00, B'1', 1),
-(9, 'Producto 4 de Alta Seguridad', 4, 'producto-4-alta-seguridad',
+(9, 'Producto 4 de Alta Seguridad', 4, 9, 'producto-4-alta-seguridad',
 'Descripción del Producto 4 con características avanzadas.',
 '["seguridad", "producto 4", "avanzado"]'::jsonb,
 'img-04',
@@ -1240,7 +1245,7 @@ INSERT INTO products (
 ]'::jsonb,
 26, .00, 40, 'PROD-004', 8.0, 8.0, 8.0, 2.0,
 '000000000004', 3.50, B'1', 1),
-(10, 'Producto 5 de Alta Seguridad', 5, 'producto-5-alta-seguridad',
+(10, 'Producto 5 de Alta Seguridad', 5, 10, 'producto-5-alta-seguridad',
 'Descripción del Producto 5 con características avanzadas.',
 '["seguridad", "producto 5", "avanzado"]'::jsonb,
 'img-05',
@@ -1349,7 +1354,7 @@ INSERT INTO products (
 ]'::jsonb,
 28, .00, 50, 'PROD-005', 9.0, 9.0, 9.0, 2.5,
 '000000000005', 4.00, B'1', 1),
-(11, 'Producto 6 de Alta Seguridad', 6, 'producto-6-alta-seguridad',
+(11, 'Producto 6 de Alta Seguridad', 6, 1, 'producto-6-alta-seguridad',
 'Descripción del Producto 6 con características avanzadas.',
 '["seguridad", "producto 6", "avanzado"]'::jsonb,
 'img-06',
@@ -1458,7 +1463,7 @@ INSERT INTO products (
 ]'::jsonb,
 30, .00, 60, 'PROD-006', 10.0, 10.0, 10.0, 3.0,
 '000000000006', 4.50, B'1', 1),
-(12, 'Producto 7 de Alta Seguridad', 7, 'producto-7-alta-seguridad',
+(12, 'Producto 7 de Alta Seguridad', 7, 2, 'producto-7-alta-seguridad',
 'Descripción del Producto 7 con características avanzadas.',
 '["seguridad", "producto 7", "avanzado"]'::jsonb,
 'img-07',
@@ -1567,7 +1572,7 @@ INSERT INTO products (
 ]'::jsonb,
 32, .00, 70, 'PROD-007', 11.0, 11.0, 11.0, 3.5,
 '000000000007', 5.00, B'1', 1),
-(13, 'Producto 8 de Alta Seguridad', 8, 'producto-8-alta-seguridad',
+(13, 'Producto 8 de Alta Seguridad', 8, 3, 'producto-8-alta-seguridad',
 'Descripción del Producto 8 con características avanzadas.',
 '["seguridad", "producto 8", "avanzado"]'::jsonb,
 'img-08',
@@ -1676,7 +1681,7 @@ INSERT INTO products (
 ]'::jsonb,
 34, .00, 80, 'PROD-008', 12.0, 12.0, 12.0, 4.0,
 '000000000008', 5.50, B'1', 1),
-(14, 'Producto 9 de Alta Seguridad', 9, 'producto-9-alta-seguridad',
+(14, 'Producto 9 de Alta Seguridad', 9, 4, 'producto-9-alta-seguridad',
 'Descripción del Producto 9 con características avanzadas.',
 '["seguridad", "producto 9", "avanzado"]'::jsonb,
 'img-09',
@@ -1785,7 +1790,7 @@ INSERT INTO products (
 ]'::jsonb,
 36, .00, 90, 'PROD-009', 13.0, 13.0, 13.0, 4.5,
 '000000000009', 6.00, B'1', 1),
-(15, 'Producto 10 de Alta Seguridad', 10, 'producto-10-alta-seguridad',
+(15, 'Producto 10 de Alta Seguridad', 10, 5, 'producto-10-alta-seguridad',
 'Descripción del Producto 10 con características avanzadas.',
 '["seguridad", "producto 10", "avanzado"]'::jsonb,
 'img-10',
@@ -1894,7 +1899,7 @@ INSERT INTO products (
 ]'::jsonb,
 38, .00, 100, 'PROD-010', 14.0, 14.0, 14.0, 5.0,
 '000000000010', 6.50, B'1', 1),
-(16, 'Producto 11 de Alta Seguridad', 11, 'producto-11-alta-seguridad',
+(16, 'Producto 11 de Alta Seguridad', 11, 6, 'producto-11-alta-seguridad',
 'Descripción del Producto 11 con características avanzadas.',
 '["seguridad", "producto 11", "avanzado"]'::jsonb,
 'img-11',
@@ -2003,7 +2008,7 @@ INSERT INTO products (
 ]'::jsonb,
 40, .00, 110, 'PROD-011', 15.0, 15.0, 15.0, 5.5,
 '000000000011', 7.00, B'1', 1),
-(17, 'Producto 12 de Alta Seguridad', 12, 'producto-12-alta-seguridad',
+(17, 'Producto 12 de Alta Seguridad', 12, 7, 'producto-12-alta-seguridad',
 'Descripción del Producto 12 con características avanzadas.',
 '["seguridad", "producto 12", "avanzado"]'::jsonb,
 'img-12',
@@ -2112,7 +2117,7 @@ INSERT INTO products (
 ]'::jsonb,
 42, .00, 120, 'PROD-012', 16.0, 16.0, 16.0, 6.0,
 '000000000012', 7.50, B'1', 1),
-(18, 'Producto 13 de Alta Seguridad', 13, 'producto-13-alta-seguridad',
+(18, 'Producto 13 de Alta Seguridad', 13, 8, 'producto-13-alta-seguridad',
 'Descripción del Producto 13 con características avanzadas.',
 '["seguridad", "producto 13", "avanzado"]'::jsonb,
 'img-13',
@@ -2221,7 +2226,7 @@ INSERT INTO products (
 ]'::jsonb,
 44, .00, 130, 'PROD-013', 17.0, 17.0, 17.0, 6.5,
 '000000000013', 8.00, B'1', 1),
-(19, 'Producto 14 de Alta Seguridad', 14, 'producto-14-alta-seguridad',
+(19, 'Producto 14 de Alta Seguridad', 14, 9, 'producto-14-alta-seguridad',
 'Descripción del Producto 14 con características avanzadas.',
 '["seguridad", "producto 14", "avanzado"]'::jsonb,
 'img-14',
@@ -2330,7 +2335,7 @@ INSERT INTO products (
 ]'::jsonb,
 46, .00, 140, 'PROD-014', 18.0, 18.0, 18.0, 7.0,
 '000000000014', 8.50, B'1', 1),
-(20, 'Producto 15 de Alta Seguridad', 15, 'producto-15-alta-seguridad',
+(20, 'Producto 15 de Alta Seguridad', 15, 10, 'producto-15-alta-seguridad',
 'Descripción del Producto 15 con características avanzadas.',
 '["seguridad", "producto 15", "avanzado"]'::jsonb,
 'img-15',
@@ -2439,7 +2444,7 @@ INSERT INTO products (
 ]'::jsonb,
 48, .00, 150, 'PROD-015', 19.0, 19.0, 19.0, 7.5,
 '000000000015', 9.00, B'1', 1),
-(21, 'Producto 16 de Alta Seguridad', 16, 'producto-16-alta-seguridad',
+(21, 'Producto 16 de Alta Seguridad', 16, 1, 'producto-16-alta-seguridad',
 'Descripción del Producto 16 con características avanzadas.',
 '["seguridad", "producto 16", "avanzado"]'::jsonb,
 'img-16',
@@ -2561,14 +2566,6 @@ INSERT INTO product_categories (id, product_id, category_id) VALUES
 (8, 4, 1),
 (9, 5, 5),
 (10, 5, 1);
-
--- Insertar datos en la tabla product_units_of_measurement
-INSERT INTO product_units_of_measurement (id, product_id, unit_of_measurement_id) VALUES
-(1, 1, 1),
-(2, 2, 1),
-(3, 3, 1),
-(4, 4, 1),
-(5, 5, 2);
 
 -- Insertar datos en la tabla customers
 INSERT INTO customers (

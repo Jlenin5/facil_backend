@@ -19,85 +19,19 @@ func NewProductRepository(db *sqlx.DB) *ProductRepository {
 // Crear un producto
 func (r *ProductRepository) CreateProduct(product *domain.Products) error {
 	// Inicia una transacción para asegurar atomicidad
-	tx, err := r.db.Beginx()
-	if err != nil {
-		fmt.Printf("Error iniciando la transacción: %v\n", err)
-		return err
-	}
-
 	// Crear un mapa para los valores del producto
-	productMap := map[string]interface{}{
-		"name":               product.Name,
-		"brand_id":           product.Brand_Id,
-		"handle":             product.Handle,
-		"description":        product.Description,
-		"tags":               product.Tags,
-		"featured_image":     product.FeaturedImage.String,
-		"images":             product.Images,
-		"prices_cf":          product.Prices_cf,
-		"prices_sf":          product.Prices_sf,
-		"prices_box":         product.Prices_box,
-		"cost":               product.Cost,
-		"tax_rate":           product.TaxRate,
-		"quantity":           product.Quantity,
-		"sku":                product.SKU,
-		"width":              product.Width,
-		"height":             product.Height,
-		"depth":              product.Depth,
-		"liters":             product.Liters,
-		"weight":             product.Weight,
-		"barcode":            product.Barcode,
-		"rating":             product.Rating,
-		"extra_shipping_fee": product.ExtraShippingFee,
-		"status":             product.Status,
-	}
 
 	// Insertar el producto en la tabla `products`
 	queryProduct := `
 		INSERT INTO products (
-			name, brand_id, handle, description, tags, featured_image, images, prices_cf, prices_sf, prices_box, cost, tax_rate, quantity, sku, width, height, depth, liters, weight, barcode, rating, extra_shipping_fee, status
+			name, prices_cf, prices_sf, prices_box, featured_pcf, featured_psf, featured_pbox, cost, sku, unit_of_measurement_id, quantity_in_box, created_by
 		) VALUES (
-			:name, :brand_id, :handle, :description, :tags, :featured_image, :images, :prices_cf, :prices_sf, :prices_box, :cost, :tax_rate, :quantity, :sku, :width, :height, :depth, :liters, :weight, :barcode, :rating, :extra_shipping_fee, :status
+			:name, :prices_cf, :prices_sf, :prices_box, :featured_pcf, :featured_psf, :featured_pbox, :cost, :sku, :unit_of_measurement_id, :quantity_in_box, :created_by
 		) RETURNING id
 	`
 
-	// Ejecutar la consulta con los datos nombrados
-	var productId int
-	stmt, err := tx.PrepareNamed(queryProduct) // Preparar la consulta nombrada
-	if err != nil {
-		tx.Rollback()
-		fmt.Printf("Error preparando la consulta: %v\n", err)
-		return err
-	}
-	defer stmt.Close()
-
-	err = stmt.Get(&productId, productMap) // Ejecutar la consulta y obtener el ID
-	if err != nil {
-		tx.Rollback()
-		fmt.Printf("Error insertando el producto: %v\n", err)
-		return err
-	}
-
-	// Insertar las categorías en la tabla `product_categories`
-	queryCategories := `
-		INSERT INTO product_categories (product_id, category_id)
-		VALUES (:product_id, :category_id)
-	`
-
-	for _, category := range product.Categories {
-		_, err := tx.NamedExec(queryCategories, map[string]interface{}{
-			"product_id":  productId,
-			"category_id": category.Id,
-		})
-		if err != nil {
-			tx.Rollback()
-			fmt.Printf("Error insertando categoría: %v\n", err)
-			return err
-		}
-	}
-
 	// Finalizar la transacción
-	err = tx.Commit()
+	_, err := r.db.NamedExec(queryProduct, product)
 	if err != nil {
 		fmt.Printf("Error al confirmar la transacción: %v\n", err)
 		return err
@@ -116,17 +50,23 @@ func (r *ProductRepository) SaveProducts(products []domain.Products) error {
 
 	// Preparar la consulta para insertar productos
 	query := `
-		INSERT INTO products (name, prices_cf, cost, quantity)
-		VALUES (:name, :prices_cf, :cost, :quantity)
+		INSERT INTO products (sku, name, prices_cf, prices_sf, prices_box, featured_pcf, featured_psf, featured_pbox, cost, created_by)
+		VALUES (:sku, :name, :prices_cf, :prices_sf, :prices_box, :featured_pcf, :featured_psf, :featured_pbox, :cost, :created_by)
 	`
 
 	// Insertar cada producto
 	for _, product := range products {
 		_, err := tx.NamedExec(query, map[string]interface{}{
-			"name":     product.Name,
-			"prices_cf":    product.Prices_cf,
-			"cost":     product.Cost,
-			"quantity": product.Quantity,
+			"sku":            product.SKU,
+			"name":           product.Name,
+			"prices_cf":      product.Prices_cf,
+			"prices_sf":      product.Prices_sf,
+			"prices_box":     product.Prices_box,
+			"featured_pcf":   product.Featured_Pcf,
+			"featured_psf":   product.Featured_Psf,
+			"featured_pbox":  product.Featured_Pbox,
+			"cost":           product.Cost,
+			"created_by":     product.Created_By,
 		})
 		if err != nil {
 			tx.Rollback()
@@ -147,14 +87,16 @@ func (r *ProductRepository) GetAllProducts() ([]domain.Products, error) {
 	var products []domain.Products
 	query := `
 		SELECT
-			p.id, p.name, p.brand_id, p.handle, p.description, p.tags,
-			p.featured_image, p.images, p.prices_cf, p.prices_sf, p.prices_box,
+			p.id, p.name, p.brand_id, p.unit_of_measurement_id, p.handle, p.description, p.tags,
+			p.featured_image, p.images, p.prices_cf, p.prices_sf, p.prices_box, p.featured_pcf, p.featured_psf, p.featured_pbox, p.quantity_in_box, p.created_at, p.updated_at,
 			p.cost, p.tax_rate, p.quantity, p.sku, p.width, p.height, p.depth,
 			p.liters, p.weight, p.barcode, p.rating, p.extra_shipping_fee, p.status,
 			p.created_by, p.updated_by,
-			COALESCE(b.id, 0) AS "brand.id", COALESCE(b.name, '') AS "brand.name"
+			COALESCE(b.id, 0) AS "brand.id", COALESCE(b.name, '') AS "brand.name",
+			COALESCE(uom.id, 0) AS "unit_of_measurement.id", COALESCE(uom.name, '') AS "unit_of_measurement.name", COALESCE(uom.shortcut, '') AS "unit_of_measurement.shortcut"
 		FROM products p
 		LEFT JOIN brands b ON p.brand_id=b.id
+		LEFT JOIN units_of_measurement uom ON p.unit_of_measurement_id=uom.id
 		WHERE p.deleted_at IS NULL
 		ORDER BY p.id DESC
 	`
@@ -247,10 +189,16 @@ func (r *ProductRepository) GetProductById(productId int) (*domain.Products, err
 	var product domain.Products
 	query := `
 		SELECT
-			p.id, p.name, p.brand_id, p.handle, p.description, p.tags, p.featured_image, p.images, p.prices_cf, p.cost, p.tax_rate, p.quantity, p.sku, p.width, p.height, p.depth, p.liters, p.weight, p.barcode, p.rating, p.extra_shipping_fee, p.status, p.created_by, p.updated_by,
-			COALESCE(b.id, 0) AS "brand.id", COALESCE(b.name, '') AS "brand.name"
+			p.id, p.name, p.brand_id, p.unit_of_measurement_id, p.handle, p.description, p.tags,
+			p.featured_image, p.images, p.prices_cf, p.prices_sf, p.prices_box, p.featured_pcf, p.featured_psf, p.featured_pbox, p.quantity_in_box,
+			p.cost, p.tax_rate, p.quantity, p.sku, p.width, p.height, p.depth,
+			p.liters, p.weight, p.barcode, p.rating, p.extra_shipping_fee, p.status,
+			p.created_by, p.updated_by,
+			COALESCE(b.id, 0) AS "brand.id", COALESCE(b.name, '') AS "brand.name",
+			COALESCE(uom.id, 0) AS "unit_of_measurement.id", COALESCE(uom.name, '') AS "unit_of_measurement.name", COALESCE(uom.shortcut, '') AS "unit_of_measurement.shortcut"
 		FROM products p
 		LEFT JOIN brands b ON p.brand_id=b.id
+		LEFT JOIN units_of_measurement uom ON p.unit_of_measurement_id=uom.id
 		WHERE p.id = $1 AND p.deleted_at IS NULL
 		ORDER BY p.id DESC
 	`
@@ -341,10 +289,12 @@ func (r *ProductRepository) GetProductsByIds(ids []int) ([]domain.Products, erro
 
 	query := `
 		SELECT
-			p.id, p.name, p.brand_id, p.handle, p.description, p.featured_image, p.prices_cf, p.cost, p.tax_rate, p.quantity, p.sku, p.width, p.height, p.depth, p.liters, p.weight, p.barcode, p.rating, p.extra_shipping_fee, p.status,
-			b.id AS "brand.id", b.name AS "brand.name"
+			p.id, p.name, p.brand_id, p.unit_of_measurement_id, p.handle, p.description, p.tags,
+			p.featured_image, p.images, p.prices_cf, p.prices_sf, p.prices_box, p.featured_pcf, p.featured_psf, p.featured_pbox, p.quantity_in_box, p.created_at, p.updated_at,
+			p.cost, p.tax_rate, p.quantity, p.sku, p.width, p.height, p.depth,
+			p.liters, p.weight, p.barcode, p.rating, p.extra_shipping_fee, p.status,
+			p.created_by, p.updated_by
 		FROM products p
-		LEFT JOIN brands b ON p.brand_id=b.id
 		WHERE p.id = ANY($1)
 	`
 
@@ -358,116 +308,29 @@ func (r *ProductRepository) GetProductsByIds(ids []int) ([]domain.Products, erro
 
 // Actualizar un producto
 func (r *ProductRepository) UpdateProduct(product *domain.Products) error {
-	// Inicia una transacción para asegurar atomicidad
-	tx, err := r.db.Beginx()
-	if err != nil {
-		fmt.Printf("Error iniciando la transacción: %v\n", err)
-		return err
-	}
-
-	// Crear un mapa para los valores del producto
-	productMap := map[string]interface{}{
-		"id":                 product.Id,
-		"name":               product.Name,
-		"brand_id":           product.Brand_Id,
-		"handle":             product.Handle,
-		"description":        product.Description,
-		"featured_image":     product.FeaturedImage.String,
-		"prices_cf":              product.Prices_cf,
-		"cost":               product.Cost,
-		"tax_rate":           product.TaxRate,
-		"quantity":           product.Quantity,
-		"sku":                product.SKU,
-		"width":              product.Width,
-		"height":             product.Height,
-		"depth":              product.Depth,
-		"liters":             product.Liters,
-		"weight":             product.Weight,
-		"barcode":            product.Barcode,
-		"rating":             product.Rating,
-		"extra_shipping_fee": product.ExtraShippingFee,
-		"status":             product.Status,
-	}
 
 	// Actualizar el producto en la tabla `products`
-	queryProduct := `
+	query := `
 		UPDATE products
 		SET 
-			name =               :name,
-			brand_id =           :brand_id,
-			handle =             :handle,
-			description =        :description,
-			featured_image =  :featured_image.String,
-			prices_cf =              :prices_cf,
-			cost =               :cost,
-			tax_rate =           :tax_rate,
-			quantity =           :quantity,
-			sku =                :sku,
-			width =              :width,
-			height =             :height,
-			depth =              :depth,
-			liters =             :liters,
-			weight =             :weight,
-			barcode =            :barcode,
-			rating =             :rating,
-			extra_shipping_fee = :extra_shipping_fee,
-			status =             :status,
-			updated_at =         NOW()
+			name =                      :name,
+			prices_cf =                 :prices_cf,
+			prices_sf =                 :prices_sf,
+			prices_box =                :prices_box,
+			featured_pcf =              :featured_pcf,
+			featured_psf =              :featured_psf,
+			featured_pbox =             :featured_pbox,
+			cost =                      :cost,
+			sku =                       :sku,
+			unit_of_measurement_id =    :unit_of_measurement_id,
+			quantity_in_box =           :quantity_in_box,
+			updated_by =                :updated_by,
+			updated_at =                NOW()
 		WHERE id = :id AND deleted_at IS NULL
 	`
 
-	stmt, err := tx.PrepareNamed(queryProduct)
-	if err != nil {
-		tx.Rollback()
-		fmt.Printf("Error preparando la consulta: %v\n", err)
-		return err
-	}
-	defer stmt.Close()
-
-	_, err = stmt.Exec(productMap)
-	if err != nil {
-		tx.Rollback()
-		fmt.Printf("Error actualizando el producto: %v\n", err)
-		return err
-	}
-
-	// Actualizar categorías: Eliminar las existentes e insertar las nuevas
-	queryDeleteCategories := `
-		DELETE FROM product_categories WHERE product_id = :product_id
-	`
-	_, err = tx.NamedExec(queryDeleteCategories, map[string]interface{}{
-		"product_id": product.Id,
-	})
-	if err != nil {
-		tx.Rollback()
-		fmt.Printf("Error eliminando categorías previas: %v\n", err)
-		return err
-	}
-
-	queryInsertCategories := `
-		INSERT INTO product_categories (product_id, category_id)
-		VALUES (:product_id, :category_id)
-	`
-	for _, category := range product.Categories {
-		_, err := tx.NamedExec(queryInsertCategories, map[string]interface{}{
-			"product_id":  product.Id,
-			"category_id": category.Id,
-		})
-		if err != nil {
-			tx.Rollback()
-			fmt.Printf("Error insertando nueva categoría: %v\n", err)
-			return err
-		}
-	}
-
-	// Confirmar la transacción
-	err = tx.Commit()
-	if err != nil {
-		fmt.Printf("Error al confirmar la transacción: %v\n", err)
-		return err
-	}
-
-	return nil
+	_, err := r.db.NamedExec(query, product)
+	return err
 }
 
 // Eliminar un producto por Id (eliminación lógica)

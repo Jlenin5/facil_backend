@@ -76,6 +76,12 @@ type CategoryReducedData struct {
 	Name string `json:"name"`
 }
 
+type UnitOfMeasurementReduceData struct {
+	Id   int    `json:"id"`
+	Name string `json:"name"`
+	Shortcut    string `json:"shortcut"`
+}
+
 type SaleOrderReducedData struct {
 	Id        int    `json:"id"`
 	Reference string `json:"reference"`

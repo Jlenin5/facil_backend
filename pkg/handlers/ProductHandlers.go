@@ -16,6 +16,7 @@ import (
 
 	"github.com/Jlenin5/facil_backend/internal/domain"
 	"github.com/Jlenin5/facil_backend/internal/usecase"
+	"github.com/Jlenin5/facil_backend/pkg/middleware"
 	"github.com/gorilla/mux"
 	"github.com/tealeg/xlsx"
 	"github.com/xuri/excelize/v2"
@@ -31,74 +32,13 @@ func NewProductHandler(productUC *usecase.ProductUseCase) *ProductHandler {
 }
 
 func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
-	// Analizar el cuerpo de la solicitud con multipart/form-data
-	err := r.ParseMultipartForm(10 << 20) // Límite de 10 MB
-	if err != nil {
-		http.Error(w, "Failed to parse form data", http.StatusBadRequest)
-		return
-	}
 
 	// Decodificar el producto desde los datos del formulario
 	var product domain.Products
-	productJSON := r.FormValue("product") // El producto enviado como JSON
-	err = json.Unmarshal([]byte(productJSON), &product)
+	err := json.NewDecoder(r.Body).Decode(&product) // Decodificar el cuerpo de la solicitud JSON
 	if err != nil {
-		http.Error(w, "Invalid product format", http.StatusBadRequest)
+		http.Error(w, "Invalid input", http.StatusBadRequest)
 		return
-	}
-
-	// Manejar las imágenes subidas
-	files := r.MultipartForm.File["images"]
-	for _, fileHeader := range files {
-		file, err := fileHeader.Open()
-		if err != nil {
-			http.Error(w, "Failed to open file", http.StatusInternalServerError)
-			return
-		}
-		defer file.Close()
-
-		// Leer el contenido del archivo como blob
-		var buf bytes.Buffer
-		_, err = io.Copy(&buf, file)
-		if err != nil {
-			http.Error(w, "Failed to read file", http.StatusInternalServerError)
-			return
-		}
-
-		// random
-		min := 10
-		max := 30
-
-		// Obtener el nombre del archivo del encabezado
-		filename := fileHeader.Filename
-
-		// Generar un nombre de archivo único combinando time.Now y un número aleatorio
-		if strings.Contains(filename, "undefined") {
-			randomNumber := rand.Intn(max-min+1) + min                       // Generar un número aleatorio entre min y max
-			cleanedFilename := strings.ReplaceAll(filename, "undefined", "") // Eliminar "undefined"
-			filename = fmt.Sprintf("%d%d%s", time.Now().UnixNano(), randomNumber, cleanedFilename)
-		} else {
-			randomNumber := rand.Intn(max-min+1) + min // Generar un número aleatorio entre min y max
-			filename = fmt.Sprintf("%d_%d_%s", time.Now().UnixNano(), randomNumber, filename)
-		}
-
-		// Guardar el blob como un archivo en el servidor
-		imagePath := fmt.Sprintf("uploads/images/products/%s", filename)
-		err = os.WriteFile(imagePath, buf.Bytes(), 0644)
-		if err != nil {
-			http.Error(w, "Failed to save image", http.StatusInternalServerError)
-			return
-		}
-
-		// Crear la entrada en product_images
-		// if i < len(product.Images) {
-		// 	product.Images[i].URL = imagePath
-		// } else {
-		// 	product.Images = append(product.Images, domain.ProductImages{
-		// 		URL:      imagePath,
-		// 		Featured: "",
-		// 	})
-		// }
 	}
 
 	// Llama al caso de uso para crear un nuevo producto
@@ -149,17 +89,10 @@ func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = r.ParseMultipartForm(10 << 20) // Límite de 10 MB
-	if err != nil {
-		http.Error(w, "Failed to parse form data", http.StatusBadRequest)
-		return
-	}
-
 	var product domain.Products
-	productJSON := r.FormValue("product")
-	err = json.Unmarshal([]byte(productJSON), &product)
+	err = json.NewDecoder(r.Body).Decode(&product) // Decodifica el cuerpo de la solicitud
 	if err != nil {
-		http.Error(w, "Invalid product format", http.StatusBadRequest)
+		http.Error(w, "Invalid input format", http.StatusBadRequest)
 		return
 	}
 	product.Id = id
@@ -180,7 +113,7 @@ func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	// 	envImagesMap[img.URL] = img
 	// }
 
-	files := r.MultipartForm.File["images"]
+	// files := r.MultipartForm.File["images"]
 
 	// Eliminar imágenes obsoletas
 	// for url, img := range dbImagesMap {
@@ -196,34 +129,34 @@ func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	// filteredImages := filterImagesWithBlob(product.Images)
 
 	// Procesar nuevas imágenes
-	for _, fileHeader := range files {
-		if fileHeader.Filename == "" {
-			continue
-		}
+	// for _, fileHeader := range files {
+	// 	if fileHeader.Filename == "" {
+	// 		continue
+	// 	}
 
-		file, err := fileHeader.Open()
-		if err != nil {
-			http.Error(w, "Failed to open file", http.StatusInternalServerError)
-			return
-		}
-		defer file.Close()
+	// 	file, err := fileHeader.Open()
+	// 	if err != nil {
+	// 		http.Error(w, "Failed to open file", http.StatusInternalServerError)
+	// 		return
+	// 	}
+	// 	defer file.Close()
 
-		// imagePath, err := saveUploadedFile(fileHeader, file)
-		// if err != nil {
-		// 	http.Error(w, "Failed to save image", http.StatusInternalServerError)
-		// 	return
-		// }
+	// 	imagePath, err := saveUploadedFile(fileHeader, file)
+	// 	if err != nil {
+	// 		http.Error(w, "Failed to save image", http.StatusInternalServerError)
+	// 		return
+	// 	}
 
-		// Verificar si la imagen ya existe en la base de datos
-		// if i < len(filteredImages) {
-		// 	filteredImages[i].URL = imagePath
-		// } else {
-		// 	product.Images = append(filteredImages, domain.ProductImages{
-		// 		URL:      imagePath,
-		// 		Featured: "",
-		// 	})
-		// }
-	}
+	// 	Verificar si la imagen ya existe en la base de datos
+	// 	if i < len(filteredImages) {
+	// 		filteredImages[i].URL = imagePath
+	// 	} else {
+	// 		product.Images = append(filteredImages, domain.ProductImages{
+	// 			URL:      imagePath,
+	// 			Featured: "",
+	// 		})
+	// 	}
+	// }
 	// product.Images = filteredImages
 
 	err = h.ProductUC.UpdateProduct(&product)
@@ -323,7 +256,86 @@ func (h *ProductHandler) deleteImage(imageID int, imagePath string) error {
 // 	return filtered
 // }
 
-func parseExcel(file multipart.File) ([]domain.Products, error) {
+const (
+	PricesCF   domain.PriceType = "prices_cf"
+	PricesSF   domain.PriceType = "prices_sf"
+	PricesBox  domain.PriceType = "prices_box"
+)
+
+// Margen de precios por tipo y nombre
+var PriceMargins = map[string]map[string]float64{
+	"CF":  {},
+	"SF":  {},
+	"BOX": {},
+}
+
+func init() {
+	for i := 1; i <= 20; i++ {
+		key := fmt.Sprintf("price_%d", i)
+		value := 1.00 + float64(i)/100.0
+		PriceMargins["CF"][key] = value
+		PriceMargins["SF"][key] = value
+		PriceMargins["BOX"][key] = value
+	}
+}
+
+// Función para calcular precios según tipo y costo
+func CalculatePrices(prices []domain.PriceProducts, priceType domain.PriceType, cost float64) []domain.PriceProducts {
+	var result []domain.PriceProducts
+	var marginType string
+
+	switch priceType {
+	case PricesCF:
+		marginType = "CF"
+	case PricesSF:
+		marginType = "SF"
+	case PricesBox:
+		marginType = "BOX"
+	default:
+		return result
+	}
+
+	for _, p := range prices {
+		margin, ok := PriceMargins[marginType][p.Name]
+		if !ok {
+			// margen por defecto si no se encuentra
+			switch priceType {
+				case PricesCF:
+					margin = 1.01
+				case PricesSF:
+					margin = 1.01
+				case PricesBox:
+					margin = 1.01
+			}
+		}
+
+		var calculatedPrice float64
+		if priceType == PricesCF {
+			calculatedPrice = (((cost / 1.18) * 1.05 * margin) * 1.18)
+		} else {
+			calculatedPrice = cost * margin
+		}
+
+		result = append(result, domain.PriceProducts{
+			Id:    p.Id,
+			Name:  p.Name,
+			Price: calculatedPrice,
+		})
+	}
+
+	return result
+}
+
+func FindPriceByName(prices []domain.PriceProducts, name string) (domain.PriceProducts, bool) {
+	for _, price := range prices {
+		if price.Name == name {
+			return price, true
+		}
+	}
+	return domain.PriceProducts{}, false
+}
+
+func parseExcel(file multipart.File, userIDFloat int) ([]domain.Products, error) {
 	var products []domain.Products
 
 	// Leer el archivo Excel
@@ -353,7 +365,7 @@ func parseExcel(file multipart.File) ([]domain.Products, error) {
 	headerMap := mapHeaders(headers) // Mapear encabezados con índices
 
 	// Validar que los encabezados requeridos estén presentes
-	requiredHeaders := []string{"Nombre", "Precio", "Costo", "Cantidad"}
+	requiredHeaders := []string{"Codigo", "Nombre", "Precio(CF)", "Precio(SF)", "Precio(Caja)", "Costo"}
 	for _, reqHeader := range requiredHeaders {
 		if _, exists := headerMap[reqHeader]; !exists {
 			return nil, fmt.Errorf("missing required header: %s", reqHeader)
@@ -361,18 +373,137 @@ func parseExcel(file multipart.File) ([]domain.Products, error) {
 	}
 
 	// Iterar sobre las filas (desde la segunda fila en adelante)
-	for _, row := range rows[1:] {
-		if len(row) < len(headers) {
+	for _, record := range rows[1:] {
+
+		// Simulación de precios originales
+		prices := []domain.PriceProducts{
+			{Id: 1, Name: "price_1"},
+			{Id: 2, Name: "price_2"},
+			{Id: 3, Name: "price_3"},
+			{Id: 4, Name: "price_4"},
+			{Id: 5, Name: "price_5"},
+			{Id: 6, Name: "price_6"},
+			{Id: 7, Name: "price_7"},
+			{Id: 8, Name: "price_8"},
+			{Id: 9, Name: "price_9"},
+			{Id: 10, Name: "price_10"},
+			{Id: 11, Name: "price_11"},
+			{Id: 12, Name: "price_12"},
+			{Id: 13, Name: "price_13"},
+			{Id: 14, Name: "price_14"},
+			{Id: 15, Name: "price_15"},
+			{Id: 16, Name: "price_16"},
+			{Id: 17, Name: "price_17"},
+			{Id: 18, Name: "price_18"},
+			{Id: 19, Name: "price_19"},
+			{Id: 20, Name: "price_20"},
+		}
+
+		var cost = parseFloat(record[headerMap["Costo"]])
+
+		// Ejemplo con CF
+		calculatedCF := CalculatePrices(prices, PricesCF, cost)
+		// Ejemplo con SF
+		calculatedSF := CalculatePrices(prices, PricesSF, cost)
+		// Ejemplo con BOX
+		calculatedBox := CalculatePrices(prices, PricesBox, cost)
+		
+		var priceCF, priceSF, priceBox float64
+
+		priceNumberCF, err := strconv.Atoi(record[headerMap["Precio(CF)"]])
+		if err != nil {
+			fmt.Printf("Error convirtiendo Precio(CF) a entero: %v\n", err)
+			priceNumberCF = 0 // Valor por defecto
+		}
+		priceNameCF := fmt.Sprintf("price_%d", priceNumberCF)
+		if foundPrice, exists := FindPriceByName(calculatedCF, priceNameCF); exists {
+			priceCF = foundPrice.Price
+    } else {
+			fmt.Printf("Precio %s no encontrado en CF\n", priceNameCF)
+			priceCF = 0
+    }
+
+		priceNumberSF, err := strconv.Atoi(record[headerMap["Precio(SF)"]])
+		if err != nil {
+			fmt.Printf("Error convirtiendo Precio(SF) a entero: %v\n", err)
+			priceNumberSF = 0 // Valor por defecto
+		}
+		priceNameSF := fmt.Sprintf("price_%d", priceNumberSF)
+    if foundPrice, exists := FindPriceByName(calculatedSF, priceNameSF); exists {
+			priceSF = foundPrice.Price
+    } else {
+			fmt.Printf("Precio %s no encontrado en SF\n", priceNameSF)
+			priceSF = 0
+    }
+
+		priceNumberBox, err := strconv.Atoi(record[headerMap["Precio(Caja)"]])
+		if err != nil {
+			fmt.Printf("Error convirtiendo Precio(Caja) a entero: %v\n", err)
+			priceNumberBox = 0 // Valor por defecto
+		}
+		priceNameBox := fmt.Sprintf("price_%d", priceNumberBox)
+    if foundPrice, exists := FindPriceByName(calculatedBox, priceNameBox); exists {
+			priceBox = foundPrice.Price
+    } else {
+			fmt.Printf("Precio %s no encontrado en Box\n", priceNameBox)
+			priceBox = 0
+    }
+
+		cfJson, _ := json.Marshal(calculatedCF)
+		sfJson, _ := json.Marshal(calculatedSF)
+		boxJson, _ := json.Marshal(calculatedBox)
+
+		if len(record) < len(headers) {
 			continue // Saltar filas vacías o incompletas
 		}
 
+		// Crear variables temporales para los campos que necesitan punteros
+		codigo := record[headerMap["Codigo"]]
+    var codigoPtr *string
+    if codigo != "" {
+			codigoPtr = &codigo
+    }
+
+    var precioCFPtr *float64
+    if record[headerMap["Precio(CF)"]] != "" {
+			precioCFPtr = &priceCF
+    }
+
+    var precioSFPtr *float64
+    if record[headerMap["Precio(SF)"]] != "" {
+			precioSFPtr = &priceSF
+    }
+
+    var precioCajaPtr *float64
+    if record[headerMap["Precio(Caja)"]] != "" {
+			precioCajaPtr = &priceBox
+    }
+
 		// Mapear los datos a la estructura Products
 		product := domain.Products{
-			Name:     row[headerMap["Nombre"]],
-			// Price:    parseFloat(row[headerMap["Precio"]]),
-			// Cost:     parseFloat(row[headerMap["Costo"]]),
-			Quantity: parseFloat(row[headerMap["Cantidad"]]),
-		}
+			SKU: domain.NullString{
+				String: codigoPtr, 
+				Valid:  codigo != "",
+			},
+			Name: record[headerMap["Nombre"]],
+			Prices_cf: cfJson,
+			Prices_sf: sfJson,
+			Prices_box: boxJson,
+			Featured_Pcf: domain.NullFloat{
+				Float: precioCFPtr, 
+				Valid: record[headerMap["Precio(CF)"]] != "",
+			},
+			Featured_Psf: domain.NullFloat{
+				Float: precioSFPtr, 
+				Valid: record[headerMap["Precio(SF)"]] != "",
+			},
+			Featured_Pbox: domain.NullFloat{
+				Float: precioCajaPtr, 
+				Valid: record[headerMap["Precio(Caja)"]] != "",
+			},
+			Cost:       cost,
+			Created_By: userIDFloat,
+    }
 
 		products = append(products, product)
 	}
@@ -415,12 +546,51 @@ func parseCSV(file multipart.File) ([]domain.Products, error) {
 			continue // Saltar filas vacías o incompletas
 		}
 
+		// Crear variables temporales para los campos que necesitan punteros
+		codigo := record[headerMap["Codigo"]]
+		var codigoPtr *string
+		if codigo != "" {
+			codigoPtr = &codigo
+		}
+
+		precioCF := parseFloat(record[headerMap["Precio(CF)"]])
+		var precioCFPtr *float64
+		if record[headerMap["Precio(CF)"]] != "" {
+			precioCFPtr = &precioCF
+		}
+
+		precioSF := parseFloat(record[headerMap["Precio(SF)"]])
+		var precioSFPtr *float64
+		if record[headerMap["Precio(SF)"]] != "" {
+			precioSFPtr = &precioSF
+		}
+
+		precioCaja := parseFloat(record[headerMap["Precio(Caja)"]])
+		var precioCajaPtr *float64
+		if record[headerMap["Precio(Caja)"]] != "" {
+				precioCajaPtr = &precioCaja
+		}
+
 		// Mapear los datos a la estructura Products
 		product := domain.Products{
-			Name:     record[headerMap["Nombre"]],
-			// Price:    parseFloat(record[headerMap["Precio"]]),
-			// Cost:     parseFloat(record[headerMap["Costo"]]),
-			Quantity: parseFloat(record[headerMap["Cantidad"]]),
+			SKU: domain.NullString{
+				String: codigoPtr, 
+				Valid:  codigo != "",
+			},
+			Name: record[headerMap["Nombre"]],
+			Featured_Pcf: domain.NullFloat{
+				Float: precioCFPtr, 
+				Valid:   record[headerMap["Precio(CF)"]] != "",
+			},
+			Featured_Psf: domain.NullFloat{
+				Float: precioSFPtr, 
+				Valid:   record[headerMap["Precio(SF)"]] != "",
+			},
+			Featured_Pbox: domain.NullFloat{
+				Float: precioCajaPtr, 
+				Valid:   record[headerMap["Precio(Caja)"]] != "",
+			},
+			Cost: parseFloat(record[headerMap["Costo"]]),
 		}
 
 		products = append(products, product)
@@ -446,6 +616,26 @@ func parseFloat(value string) float64 {
 }
 
 func (h *ProductHandler) ImportExcel(w http.ResponseWriter, r *http.Request) {
+	// Obtener los datos del usuario del contexto
+	userData, ok := r.Context().Value(middleware.UserContextKey).(map[string]interface{})
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Validar user_id del usuario autenticado
+	userIDRaw, exists := userData["id"]
+	if !exists {
+		http.Error(w, "User ID not found", http.StatusBadRequest)
+		return
+	}
+
+	userIDFloat, ok := userIDRaw.(float64)
+	if !ok {
+		http.Error(w, "Invalid user id", http.StatusBadRequest)
+		return
+	}
+	
 	// Parsear el formulario con el archivo
 	err := r.ParseMultipartForm(10 << 20) // 10 MB de límite
 	if err != nil {
@@ -468,7 +658,7 @@ func (h *ProductHandler) ImportExcel(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case strings.HasSuffix(filename, ".xlsx"):
 		// Procesar archivo Excel
-		products, err = parseExcel(file)
+		products, err = parseExcel(file, int(userIDFloat))
 	case strings.HasSuffix(filename, ".csv"):
 		// Procesar archivo CSV
 		products, err = parseCSV(file)
@@ -527,7 +717,7 @@ func (h *ProductHandler) ExportExcel(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Agregar encabezados
-	headers := []string{"Nombre", "Marca", "Precio", "Costo", "Cantidad", "SKU", "Ancho (cm)", "Alto (cm)", "Profundidad (cm)", "Litros (l)", "Peso (kg)"}
+	headers := []string{"Codigo", "Nombre", "Precio(CF)", "Precio(SF)", "Precio(Caja)", "Costo"}
 	headerRow := sheet.AddRow()
 	for _, header := range headers {
 		cell := headerRow.AddCell()
@@ -540,18 +730,35 @@ func (h *ProductHandler) ExportExcel(w http.ResponseWriter, r *http.Request) {
 	// Agregar datos de las ventas
 	for _, product := range products {
 		row := sheet.AddRow()
+		
+		// Manejar campos posibles nil
+		sku := ""
+		if product.SKU.String != nil {
+			sku = *product.SKU.String
+		}
+		
+		pcf := 0.0
+		if product.Featured_Pcf.Float != nil {
+			pcf = *product.Featured_Pcf.Float
+		}
+		
+		psf := 0.0
+		if product.Featured_Psf.Float != nil {
+			psf = *product.Featured_Psf.Float
+		}
+		
+		pbox := 0.0
+		if product.Featured_Pbox.Float != nil {
+			pbox = *product.Featured_Pbox.Float
+		}
+
 		cells := []string{
+			sku,
 			product.Name,
-			product.Brand.Name,
-			fmt.Sprintf("%.2f", product.Prices_cf),
+			fmt.Sprintf("%.2f", pcf),
+			fmt.Sprintf("%.2f", psf),
+			fmt.Sprintf("%.2f", pbox),
 			fmt.Sprintf("%.2f", product.Cost),
-			fmt.Sprintf("%.2f", product.Quantity),
-			*product.SKU.String,
-			fmt.Sprintf("%.2f", product.Width),
-			fmt.Sprintf("%.2f", product.Height),
-			fmt.Sprintf("%.2f", product.Depth),
-			fmt.Sprintf("%.2f", product.Liters),
-			fmt.Sprintf("%.2f", product.Weight),
 		}
 
 		for colIdx, value := range cells {

@@ -14,7 +14,7 @@ CREATE TABLE plans (
     max_documents INT NOT NULL CHECK (max_documents >= 0),
     status BIT(1) NOT NULL DEFAULT B'1', -- Usar BIT(1) con valor predeterminado de 1
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -27,7 +27,7 @@ CREATE TABLE subscriptions (
     end_date TIMESTAMP NOT NULL,
     status VARCHAR(10) NOT NULL CHECK (status IN ('active', 'expired', 'canceled')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -40,7 +40,7 @@ CREATE TABLE currencies (
     symbol VARCHAR(10) NOT NULL,
     status BIT(1) NOT NULL DEFAULT B'1', -- Usar BIT(1) con valor predeterminado de 1
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -55,7 +55,7 @@ CREATE TABLE taxes (
     created_by INT NOT NULL,
     updated_by INT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -66,7 +66,7 @@ CREATE TABLE tax_items (
     reference_id INT NOT NULL, -- ID de la orden o venta
     amount DECIMAL(14,4) NOT NULL, -- Valor del impuesto calculado
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -76,7 +76,7 @@ CREATE TABLE roles (
     name VARCHAR(50) NOT NULL,
     description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -108,7 +108,7 @@ CREATE TABLE companies (
     created_by INT NOT NULL,
     updated_by INT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -124,7 +124,7 @@ CREATE TABLE branch_offices (
     created_by INT NOT NULL,
     updated_by INT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -145,7 +145,7 @@ CREATE TABLE warehouses (
     created_by INT NOT NULL,
     updated_by INT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -158,7 +158,7 @@ CREATE TABLE work_areas (
     created_by INT NOT NULL,
     updated_by INT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -172,7 +172,7 @@ CREATE TABLE job_positions (
     created_by INT NOT NULL,
     updated_by INT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -196,7 +196,7 @@ CREATE TABLE employees (
     salary NUMERIC(14,4) CHECK (salary >= 0) NOT NULL,
     status BIT(1) NOT NULL DEFAULT B'1', -- Usar BIT(1) con valor predeterminado de 1
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -214,7 +214,7 @@ CREATE TABLE users (
     shortcuts JSONB DEFAULT '[]'::jsonb,
     status BIT(1) NOT NULL DEFAULT B'1', -- Usar BIT(1) con valor predeterminado de 1
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -227,7 +227,7 @@ CREATE TABLE exchange_rates (
     created_by INT NOT NULL,
     updated_by INT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -240,7 +240,7 @@ CREATE TABLE categories (
     created_by INT NOT NULL,
     updated_by INT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -255,13 +255,14 @@ CREATE TABLE brands (
     created_by INT NOT NULL,
     updated_by INT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
 CREATE TABLE units_of_measurement (
     id INT PRIMARY KEY DEFAULT nextval('sequence_ids'),
     name varchar(100) NOT NULL,
+    shortcut varchar(50),
     description text,
     status BIT(1) NOT NULL DEFAULT B'1', -- Usar BIT(1) con valor predeterminado de 1
     created_by INT NOT NULL,
@@ -274,8 +275,9 @@ CREATE TABLE units_of_measurement (
 -- Products Table
 CREATE TABLE products (
     id INT PRIMARY KEY DEFAULT nextval('sequence_ids'),
-    name VARCHAR(150) DEFAULT NULL,
+    name VARCHAR(250) DEFAULT NULL,
     brand_id INTEGER NULL,
+    unit_of_measurement_id INT NULL,
     handle VARCHAR(255) DEFAULT NULL,
     description TEXT DEFAULT NULL,
     tags JSONB DEFAULT '{}'::jsonb,
@@ -284,6 +286,10 @@ CREATE TABLE products (
     prices_cf JSONB DEFAULT '{}'::jsonb,
     prices_sf JSONB DEFAULT '{}'::jsonb,
     prices_box JSONB DEFAULT '{}'::jsonb,
+    featured_pcf DECIMAL(14,4) NULL,
+    featured_psf DECIMAL(14,4) NULL,
+    featured_pbox DECIMAL(14,4) NULL,
+    quantity_in_box SMALLINT NULL,
     cost DECIMAL(14,4) NOT NULL DEFAULT 0,
     tax_rate DECIMAL(5, 2) DEFAULT NULL,
     quantity  DECIMAL(14,4) NOT NULL DEFAULT 0,
@@ -300,7 +306,7 @@ CREATE TABLE products (
     created_by INT NOT NULL,
     updated_by INT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -309,13 +315,6 @@ CREATE TABLE product_categories (
     id INT PRIMARY KEY DEFAULT nextval('sequence_ids'),
     product_id INT,
     category_id INT
-);
-
--- Product Units of measurement Table
-CREATE TABLE product_units_of_measurement (
-    id INT PRIMARY KEY DEFAULT nextval('sequence_ids'),
-    product_id INT,
-    unit_of_measurement_id INT
 );
 
 -- Services Table
@@ -330,7 +329,7 @@ CREATE TABLE services (
     rating DECIMAL(4, 2) DEFAULT 0,
     status BIT(1) NOT NULL DEFAULT B'1', -- Usar BIT(1) con valor predeterminado de 1
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -350,7 +349,7 @@ CREATE TABLE customers (
     created_by INT NOT NULL,
     updated_by INT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -367,7 +366,7 @@ CREATE TABLE suppliers (
     created_by INT NOT NULL,
     updated_by INT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -380,7 +379,7 @@ CREATE TABLE payment_methods (
     created_by INT NOT NULL,
     updated_by INT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -397,7 +396,7 @@ CREATE TABLE cash_registers (
     difference DECIMAL(14,4) DEFAULT NULL, -- Diferencia entre la caja y lo calculado
     status VARCHAR(10) NOT NULL CHECK (status IN ('open', 'closed')) DEFAULT 'open',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -411,7 +410,7 @@ CREATE TABLE cash_movements (
     description VARCHAR(255),
     user_id INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT NULL
 );
 
 -- Quotations Table
@@ -435,7 +434,7 @@ CREATE TABLE quotes (
     quote_status VARCHAR(20) NOT NULL CHECK (quote_status IN ('issued', 'pending', 'approved', 'rejected', 'canceled')) DEFAULT 'issued', -- Estado
     migrate_quote BIT(1) NOT NULL DEFAULT B'0',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -452,7 +451,7 @@ CREATE TABLE quote_details (
     subtotal DECIMAL(14,4) NOT NULL,
     total DECIMAL(14,4) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -474,7 +473,7 @@ CREATE TABLE sale_orders (
     migrate_sale_order BIT(1) NOT NULL DEFAULT B'0',
     quote_id INT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -491,7 +490,7 @@ CREATE TABLE sale_order_details (
     subtotal  DECIMAL(14,4) NOT NULL,
     total  DECIMAL(14,4) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -528,7 +527,7 @@ CREATE TABLE purchase_orders (
     migrate_purchase BIT(1) NOT NULL DEFAULT B'0', -- Usar BIT(1) con valor predeterminado de 0
     notes TEXT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -544,7 +543,7 @@ CREATE TABLE purchase_order_details (
     subtotal DECIMAL(5, 2) NOT NULL,
     total  DECIMAL(14,4) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -573,7 +572,7 @@ CREATE TABLE purchases (
     document_attachment VARCHAR(255),
     notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP
 );
 
@@ -589,7 +588,7 @@ CREATE TABLE purchase_details (
     subtotal DECIMAL(14,4) NOT NULL,
     total  DECIMAL(14,4) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -606,7 +605,7 @@ CREATE TABLE purchase_order_payments (
     status VARCHAR(20) NOT NULL CHECK (status IN ('pending', 'completed', 'failed', 'refunded')), -- Estado del pago
     notes TEXT, -- Notas adicionales
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -635,7 +634,7 @@ CREATE TABLE sales (
     retention DECIMAL(14,4) DEFAULT NULL,
     perception DECIMAL(14,4) DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -652,7 +651,7 @@ CREATE TABLE sale_details (
     subtotal DECIMAL(14,4) NOT NULL,
     total DECIMAL(14,4) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -667,7 +666,7 @@ CREATE TABLE opportunity_tracking (
     expected_revenue DECIMAL(14,4), -- Ingreso estimado
     probability INT CHECK (probability BETWEEN 0 AND 100), -- Probabilidad de cierre
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -686,7 +685,7 @@ CREATE TABLE purchase_requests (
     approval_date TIMESTAMP,
     notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -703,7 +702,7 @@ CREATE TABLE purchase_request_details (
     status VARCHAR(50) CHECK (status IN ('pending', 'received', 'canceled')) DEFAULT 'pending',
     comments TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -719,7 +718,7 @@ CREATE TABLE stock_control (
     created_by INT NOT NULL,
     updated_by INT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -733,7 +732,7 @@ CREATE TABLE inventory_movements (
     reference CHAR(8), -- Puede ser una compra, venta u otro documento
     user_id INT NOT NULL, -- Quién hizo el movimiento
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -755,7 +754,7 @@ CREATE TABLE systems (
     name VARCHAR(100) NOT NULL,
     description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT NULL
 );
 
 -- Keys Table
@@ -770,7 +769,7 @@ CREATE TABLE keys (
     updated_by INT,
     status BIT(1) NOT NULL DEFAULT B'1',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT NULL
 );
 
 -- Notifications Table
@@ -790,7 +789,7 @@ CREATE TABLE attendance_types (
     description TEXT,
     status BIT(1) NOT NULL DEFAULT B'1',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -810,7 +809,7 @@ CREATE TABLE attendances (
     approved_by INT,
     approved_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL,
     CONSTRAINT unique_employee_date UNIQUE (employee_id, date)
 );
@@ -826,7 +825,7 @@ CREATE TABLE absence_types (
     deducts_vacation BIT(1) NOT NULL DEFAULT B'0',
     status BIT(1) NOT NULL DEFAULT B'1',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -843,7 +842,7 @@ CREATE TABLE absence_requests (
     approved_at TIMESTAMP,
     rejection_reason TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL,
     CHECK (end_date >= start_date)
 );
@@ -860,7 +859,7 @@ CREATE TABLE vacations (
     approved_at TIMESTAMP,
     rejection_reason TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL,
     CHECK (end_date >= start_date)
 );
@@ -874,7 +873,7 @@ CREATE TABLE vacation_balances (
     days_taken SMALLINT NOT NULL DEFAULT 0,
     days_remaining SMALLINT GENERATED ALWAYS AS (total_days - days_taken) STORED,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL,
     CONSTRAINT unique_employee_year UNIQUE (employee_id, year)
 );
@@ -887,7 +886,7 @@ CREATE TABLE work_schedules (
     is_default BIT(1) NOT NULL DEFAULT B'0',
     status BIT(1) NOT NULL DEFAULT B'1',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -900,7 +899,7 @@ CREATE TABLE schedule_details (
     end_time TIME NOT NULL,
     is_working_day BIT(1) NOT NULL DEFAULT B'1',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL,
     CHECK (is_working_day = B'0' OR end_time > start_time)
 );
@@ -913,7 +912,7 @@ CREATE TABLE employee_schedules (
     effective_date DATE NOT NULL,
     end_date DATE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL,
     CHECK (end_date IS NULL OR end_date >= effective_date)
 );
@@ -927,7 +926,7 @@ CREATE TABLE holidays (
     recurring BIT(1) NOT NULL DEFAULT B'0',
     status BIT(1) NOT NULL DEFAULT B'1',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -947,7 +946,7 @@ CREATE TABLE overtime_requests (
     approved_at TIMESTAMP,
     rejection_reason TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL,
     CHECK (end_time > start_time)
 );
@@ -965,7 +964,7 @@ CREATE TABLE payrolls (
     approved_by INT,
     approved_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL,
     CHECK (period_end >= period_start),
     CHECK (payment_date >= period_end)
@@ -989,7 +988,7 @@ CREATE TABLE payroll_details (
     status VARCHAR(20) CHECK (status IN ('pending', 'paid', 'canceled')) DEFAULT 'pending',
     paid_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
@@ -1004,7 +1003,7 @@ CREATE TABLE employee_benefits (
     end_date DATE,
     status BIT(1) NOT NULL DEFAULT B'1',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL,
     CHECK (end_date IS NULL OR end_date >= start_date)
 );
@@ -1023,7 +1022,7 @@ CREATE TABLE performance_reviews (
     status VARCHAR(20) CHECK (status IN ('draft', 'completed', 'acknowledged')) DEFAULT 'draft',
     acknowledged_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL,    
     CHECK (next_review_date IS NULL OR next_review_date > review_date)
 );
@@ -1041,6 +1040,6 @@ CREATE TABLE employee_incidents (
     status VARCHAR(20) CHECK (status IN ('open', 'investigating', 'resolved', 'closed')) DEFAULT 'open',
     resolved_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
     deleted_at TIMESTAMP DEFAULT NULL
 );

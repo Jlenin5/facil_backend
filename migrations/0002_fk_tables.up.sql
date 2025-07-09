@@ -66,16 +66,13 @@ ALTER TABLE units_of_measurement ADD CONSTRAINT fk_units_of_measurement_updated_
 
 /* ────────────────────────────  PRODUCTOS  ──────────────────────────── */
 ALTER TABLE products ADD CONSTRAINT fk_products_brand FOREIGN KEY (brand_id) REFERENCES brands(id) ON DELETE SET NULL;
+ALTER TABLE products ADD CONSTRAINT fk_products_unit_of_measurement FOREIGN KEY (unit_of_measurement_id) REFERENCES units_of_measurement(id) ON DELETE SET NULL;
 ALTER TABLE products ADD CONSTRAINT fk_products_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL;
 ALTER TABLE products ADD CONSTRAINT fk_products_updated_by FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL;
 
 /* ────────────────────────────  PRODUCTOS - CATEGORIAS  ──────────────────────────── */
 ALTER TABLE product_categories ADD CONSTRAINT fk_product_categories_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL;
 ALTER TABLE product_categories ADD CONSTRAINT fk_product_categories_category FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL;
-
-/* ────────────────────────────  PRODUCTOS - UNIDADES DE MEDIDA  ──────────────────────────── */
-ALTER TABLE product_units_of_measurement ADD CONSTRAINT fk_product_units_of_measurement_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL;
-ALTER TABLE product_units_of_measurement ADD CONSTRAINT fk_product_units_of_measurement_unit_of_measurement FOREIGN KEY (unit_of_measurement_id) REFERENCES units_of_measurement(id) ON DELETE SET NULL;
 
 /* ────────────────────────────  CLIENTES  ──────────────────────────── */
 ALTER TABLE customers ADD CONSTRAINT fk_customers_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL;

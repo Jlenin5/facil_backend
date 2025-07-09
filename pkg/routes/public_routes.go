@@ -17,6 +17,6 @@ func PublicRoutes(router *mux.Router, db *sqlx.DB) {
 
 	productUC := usecase.NewProductUseCase(repository.NewProductRepository(db))
 	productHandler := handlers.NewProductHandler(productUC)
-	router.HandleFunc("/products/import-excel", productHandler.ImportExcel).Methods("POST")
+	// router.HandleFunc("/products/import-excel", productHandler.ImportExcel).Methods("POST")
 	router.HandleFunc("/products/export-excel", productHandler.ExportExcel).Methods("POST")
 }
