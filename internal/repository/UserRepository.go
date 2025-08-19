@@ -22,9 +22,9 @@ func NewUserRepository(db *sqlx.DB) *UserRepository {
 func (r *UserRepository) CreateUser(user *domain.Users) error {
 	query := `
 		INSERT INTO users (
-			role, avatar, email, username, password, settings, shortcuts, status
+			role_id, avatar, email, username, password, settings, shortcuts, status
 		) VALUES (
-			:role, :avatar, :email, :username, :password, :settings, :shortcuts, :status
+			:role_id, :avatar, :email, :username, :password, :settings, :shortcuts, :status
 		)
 	`
 	_, err := r.db.NamedExec(query, user)

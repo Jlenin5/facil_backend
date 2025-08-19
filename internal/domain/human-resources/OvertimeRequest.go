@@ -19,7 +19,7 @@ type OvertimeRequest struct {
 	ApprovedBy      domain.NullInt             `db:"approved_by" json:"approved_by,omitempty"`
 	ApprovedAt      domain.NullTime            `db:"approved_at" json:"approved_at,omitempty"`
 	RejectionReason domain.NullString          `db:"rejection_reason" json:"rejection_reason,omitempty"`
-	Created_at      time.Time                  `db:"created_at" json:"-"`
-	Updated_at      time.Time                  `db:"updated_at" json:"-"`
+	Created_at      time.Time                  `db:"created_at" json:"created_at"`
+	Updated_at      domain.NullTime            `db:"updated_at" json:"updated_at"`
 	Deleted_at      domain.NullTime            `db:"deleted_at" json:"-"`
 }

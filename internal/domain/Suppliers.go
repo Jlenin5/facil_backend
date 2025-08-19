@@ -13,7 +13,7 @@ type Suppliers struct {
 	Web_Site   NullString `db:"web_site" json:"web_site"`
 	Address    NullString `db:"address" json:"address"`
 	Status     uint8      `db:"status" json:"status"`
-	Created_at time.Time  `db:"created_at" json:"-"`
-	Updated_at time.Time  `db:"updated_at" json:"-"`
+	Created_at time.Time  `db:"created_at" json:"created_at"`
+	Updated_at NullTime   `db:"updated_at" json:"updated_at"`
 	Deleted_at NullTime   `db:"deleted_at" json:"-"`
 }

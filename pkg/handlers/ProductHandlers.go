@@ -311,7 +311,7 @@ func CalculatePrices(prices []domain.PriceProducts, priceType domain.PriceType, 
 
 		var calculatedPrice float64
 		if priceType == PricesCF {
-			calculatedPrice = (((cost / 1.18) * 1.05 * margin) * 1.18)
+			calculatedPrice = (((cost / 1.18) * 1.06 * margin) * 1.18)
 		} else {
 			calculatedPrice = cost * margin
 		}
@@ -361,11 +361,19 @@ func parseExcel(file multipart.File, userIDFloat int) ([]domain.Products, error)
 		return nil, fmt.Errorf("empty file or missing headers")
 	}
 
-	headers := rows[0]               // Primera fila (encabezados)
-	headerMap := mapHeaders(headers) // Mapear encabezados con índices
-
+	if len(rows[0]) < 6 {
+		return nil, fmt.Errorf("expected at least 6 columns, found %d", len(rows[0]))
+	}
+	headers := rows[0][:6]               // Primera fila (encabezados)
+	
 	// Validar que los encabezados requeridos estén presentes
 	requiredHeaders := []string{"Codigo", "Nombre", "Precio(CF)", "Precio(SF)", "Precio(Caja)", "Costo"}
+	headerMap := make(map[string]int)
+	for i, header := range headers {
+		headerMap[header] = i
+	}
+
+	// Verificar que todos los encabezados requeridos existan
 	for _, reqHeader := range requiredHeaders {
 		if _, exists := headerMap[reqHeader]; !exists {
 			return nil, fmt.Errorf("missing required header: %s", reqHeader)
@@ -373,7 +381,25 @@ func parseExcel(file multipart.File, userIDFloat int) ([]domain.Products, error)
 	}
 
 	// Iterar sobre las filas (desde la segunda fila en adelante)
-	for _, record := range rows[1:] {
+	for _, row := range rows[1:] {
+
+		// Obtener solo las primeras 6 celdas
+		if len(row) < 6 {
+			continue // si hay menos de 6 columnas, ignorar
+		}
+		record := row[:6]
+
+		// Saltar filas completamente vacías en las primeras 6 columnas
+		isEmpty := true
+		for _, cell := range record {
+			if cell != "" {
+				isEmpty = false
+				break
+			}
+		}
+		if isEmpty {
+			continue
+		}
 
 		// Simulación de precios originales
 		prices := []domain.PriceProducts{
@@ -717,7 +743,7 @@ func (h *ProductHandler) ExportExcel(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Agregar encabezados
-	headers := []string{"Codigo", "Nombre", "Precio(CF)", "Precio(SF)", "Precio(Caja)", "Costo"}
+	headers := []string{"Codigo", "Nombre", "Precio(CF)", "Precio(SF)", "Precio(Caja)"}
 	headerRow := sheet.AddRow()
 	for _, header := range headers {
 		cell := headerRow.AddCell()
@@ -758,7 +784,6 @@ func (h *ProductHandler) ExportExcel(w http.ResponseWriter, r *http.Request) {
 			fmt.Sprintf("%.2f", pcf),
 			fmt.Sprintf("%.2f", psf),
 			fmt.Sprintf("%.2f", pbox),
-			fmt.Sprintf("%.2f", product.Cost),
 		}
 
 		for colIdx, value := range cells {

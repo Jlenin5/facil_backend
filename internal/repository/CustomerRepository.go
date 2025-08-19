@@ -39,7 +39,7 @@ func (r *CustomerRepository) GetAllCustomers() ([]domain.Customers, error) {
 	var customers []domain.Customers
 	query := `
 		SELECT
-			id, first_name, second_name, third_name, surname, second_surname, company_name, document_type, document_number, email, address, phone, status
+			id, names, surname, second_surname, company_name, document_type, document_number, email, address, phone, status
 		FROM customers
 		WHERE deleted_at IS NULL
 		ORDER BY id DESC
@@ -57,7 +57,7 @@ func (r *CustomerRepository) GetCustomerById(customerId int) (*domain.Customers,
 	var customer domain.Customers
 	query := `
 		SELECT
-			id, first_name, second_name, third_name, surname, second_surname, company_name, document_type, document_number, email, address, phone, status
+			id, names, surname, second_surname, company_name, document_type, document_number, email, address, phone, status
 		FROM customers
 		WHERE id = $1 AND deleted_at IS NULL
 	`
@@ -73,10 +73,10 @@ func (r *CustomerRepository) GetCustomerById(customerId int) (*domain.Customers,
 func (r *CustomerRepository) UpdateCustomer(customer *domain.Customers) error {
 	query := `
 		UPDATE customers SET
-			first_name = $1, second_name = $2, third_name = $3, surname = $4, second_surname = $5, company_name = $6, document_type = $7, document_number = $8, email = $9, address = $10, phone = $11, status = $12, updated_at = NOW()
-		WHERE id = $13
+			names = $1, surname = $2, second_surname = $3, company_name = $4, document_type = $5, document_number = $6, email = $7, address = $8, phone = $9, status = $10, updated_at = NOW()
+		WHERE id = $11
 	`
-	_, err := r.db.Exec(query, customer.First_Name, customer.Second_Name, customer.Third_Name,
+	_, err := r.db.Exec(query, customer.Names,
 		customer.Surname, customer.Second_Surname, customer.Company_Name, customer.Document_Type,
 		customer.Document_Number, customer.Email, customer.Address, customer.Phone, customer.Status, customer.Id)
 	return err

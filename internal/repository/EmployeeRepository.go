@@ -22,9 +22,9 @@ func NewEmployeeRepository(db *sqlx.DB) *EmployeeRepository {
 func (r *EmployeeRepository) CreateEmployee(employee *domain.Employees) error {
 	query := `
 		INSERT INTO employees (
-			first_name, second_name, third_name, surname, second_surname, photo, warehouse_id, document_type, document_number, birth_date, gender, email, phone, address, hire_date, job_position_id, salary, status
+			names, surname, second_surname, photo, warehouse_id, document_type, document_number, birth_date, gender, email, phone, address, hire_date, job_position_id, salary, status
 		) VALUES (
-		 	:first_name, :second_name, :third_name, :surname, :second_surname, :photo, :warehouse_id, :document_type, :document_number, :birth_date, :gender, :email, :phone, :address, :hire_date, :job_position_id, :salary, :status
+		 	:names, :surname, :second_surname, :photo, :warehouse_id, :document_type, :document_number, :birth_date, :gender, :email, :phone, :address, :hire_date, :job_position_id, :salary, :status
 		)
 	`
 	_, err := r.db.NamedExec(query, employee)
@@ -115,12 +115,23 @@ func (r *EmployeeRepository) GetEmployeeById(employeeId int) (*domain.Employees,
 func (r *EmployeeRepository) UpdateEmployee(employee *domain.Employees) error {
 	query := `
 		UPDATE employees SET
-			first_name = $first_name, second_name = $second_name, third_name = $third_name,
-			surname = $surname, second_surname = $second_surname, photo = $photo,
-			warehouse_id = $warehouse_id, document_type = $document_type,
-			document_number = $document_number, birth_date = $birth_date, gender = $gender,
-			email = $email, phone = $phone, address = $address, hire_date = $hire_date, job_position_id = $job_position_id,
-			position = $position, salary = $salary, status = $status, updated_at = NOW()
+			names = :names,
+			surname = :surname,
+			second_surname = :second_surname,
+			photo = :photo,
+			warehouse_id = :warehouse_id,
+			document_type = :document_type,
+			document_number = :document_number,
+			birth_date = :birth_date,
+			gender = :gender,
+			email = :email,
+			phone = :phone,
+			address = :address,
+			hire_date = :hire_date,
+			job_position_id = :job_position_id,
+			salary = :salary,
+			status = :status,
+			updated_at = NOW()
 		WHERE id = :id
 	`
 	_, err := r.db.NamedExec(query, employee)

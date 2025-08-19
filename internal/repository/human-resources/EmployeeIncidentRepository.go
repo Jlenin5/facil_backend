@@ -3,6 +3,7 @@ package repositoryHumanresources
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/Jlenin5/facil_backend/internal/domain"
 	humanresources "github.com/Jlenin5/facil_backend/internal/domain/human-resources"
@@ -25,11 +26,9 @@ const (
 func (r *EmployeeIncidentRepository) Create(ctx context.Context, incident *humanresources.EmployeeIncident) error {
 	query := fmt.Sprintf(`
 		INSERT INTO %s (
-			employee_id, incident_type, incident_date, description,
-			severity, action_taken, reported_by, status
+			employee_id, incident_type, incident_date, observation, discount, total_to_pay, reported_by, status
 		) VALUES (
-			:employee_id, :incident_type, :incident_date, :description,
-			:severity, :action_taken, :reported_by, :status
+			:employee_id, :incident_type, :incident_date, :observation, :discount, :total_to_pay, :reported_by, :status
 		) RETURNING id, created_at, updated_at`, employeeIncidentsTable)
 
 	rows, err := r.db.NamedQueryContext(ctx, query, incident)
@@ -52,20 +51,41 @@ func (r *EmployeeIncidentRepository) Create(ctx context.Context, incident *human
 }
 
 func (r *EmployeeIncidentRepository) GetAll(ctx context.Context) ([]humanresources.EmployeeIncident, error) {
+
+	// Obtener las fechas de inicio y fin de la semana actual
+	now := time.Now()
+	weekday := now.Weekday()
+
+	// Ajustar al lunes de esta semana
+	var startOfWeek time.Time
+	if weekday == time.Sunday {
+		// Si es domingo, el lunes fue hace 6 días
+		startOfWeek = now.AddDate(0, 0, -6)
+	} else {
+		// Restar los días desde el lunes
+		startOfWeek = now.AddDate(0, 0, -int(weekday-time.Monday))
+	}
+
+	// El domingo de esta semana es 6 días después del lunes
+	endOfWeek := startOfWeek.AddDate(0, 0, 6)
+	
+	// Formatear fechas para SQL
+	startDate := startOfWeek.Format("2006-01-02")
+	endDate := endOfWeek.Format("2006-01-02")
+
 	query := fmt.Sprintf(`
 		SELECT
-			ei.id, ei.employee_id, ei.incident_type, ei.incident_date,
-			ei.description, ei.severity, ei.action_taken, ei.reported_by,
-			ei.resolved_at, ei.status,
+			ei.id, ei.employee_id, ei.incident_type, ei.incident_date, ei.observation, ei.discount, ei.total_to_pay, ei.reported_by, ei.resolved_at, ei.status,
 			e.id AS "employee.id",
 			e.names AS "employee.names",
-			e.surname AS "employee.surname",
-			e.second_surname AS "employee.second_surname",
-			e.warehouse_id AS "employee.warehouse_id"
+			COALESCE(e.surname, '') AS "employee.surname",
+			COALESCE(e.second_surname, '') AS "employee.second_surname"
 		FROM %s ei
-		JOIN %s e ON ei.employee_id = e.id
+		INNER JOIN %s e ON ei.employee_id = e.id
 		WHERE ei.deleted_at IS NULL
-		ORDER BY ei.incident_date DESC`, employeeIncidentsTable, employeesTable4)
+		AND ei.incident_date BETWEEN '%s 00:00:00' AND '%s 23:59:59'
+		ORDER BY ei.incident_date DESC`,
+		employeeIncidentsTable, employeesTable4, startDate, endDate)
 
 	var results []struct {
 		humanresources.EmployeeIncident
@@ -88,12 +108,11 @@ func (r *EmployeeIncidentRepository) GetAll(ctx context.Context) ([]humanresourc
 func (r *EmployeeIncidentRepository) GetById(ctx context.Context, id int) (*humanresources.EmployeeIncident, error) {
 	query := fmt.Sprintf(`
 		SELECT
-			ei.*,
+			ei.id, ei.employee_id, ei.incident_type, ei.incident_date, ei.observation, ei.discount, ei.total_to_pay, ei.reported_by, ei.resolved_at, ei.status,
 			e.id AS "employee.id",
 			e.names AS "employee.names",
-			e.surname AS "employee.surname",
-			e.second_surname AS "employee.second_surname",
-			e.warehouse_id AS "employee.warehouse_id"
+			COALESCE(e.surname, '') AS "employee.surname",
+			COALESCE(e.second_surname, '') AS "employee.second_surname"
 		FROM %s ei
 		JOIN %s e ON ei.employee_id = e.id
 		WHERE ei.id = $1 AND ei.deleted_at IS NULL`, employeeIncidentsTable, employeesTable4)
@@ -117,11 +136,11 @@ func (r *EmployeeIncidentRepository) Update(ctx context.Context, incident *human
 	query := fmt.Sprintf(`
 		UPDATE %s SET
 			incident_type = :incident_type,
-			description = :description,
-			severity = :severity,
-			action_taken = :action_taken,
-			status = :status,
+			observation = :observation,
+			discount = :discount,
+			total_to_pay = :total_to_pay,
 			resolved_at = :resolved_at,
+			status = :status,
 			updated_at = NOW()
 		WHERE id = :id AND deleted_at IS NULL`, employeeIncidentsTable)
 
@@ -143,9 +162,8 @@ func (r *EmployeeIncidentRepository) GetByStatus(ctx context.Context, status str
 			ei.*,
 			e.id AS "employee.id",
 			e.names AS "employee.names",
-			e.surname AS "employee.surname",
-			e.second_surname AS "employee.second_surname",
-			e.warehouse_id AS "employee.warehouse_id"
+			COALESCE(e.surname, '') AS "employee.surname",
+			COALESCE(e.second_surname, '') AS "employee.second_surname"
 		FROM %s ei
 		JOIN %s e ON ei.employee_id = e.id
 		WHERE ei.status = $1 AND ei.deleted_at IS NULL

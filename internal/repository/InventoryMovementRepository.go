@@ -88,7 +88,7 @@ func (r *InventoryMovementRepository) GetAllInventoryMovements() ([]domain.Inven
 		if user.Employee_Id.Valid {
 			var company domain.Employees
 			err = r.db.Get(&company, `
-				SELECT id, first_name, second_name, third_name, surname, second_surname, photo, warehouse_id, document_type, document_number, birth_date, gender, email, phone, address, hire_date, job_position_id, salary, status
+				SELECT id, names, surname, second_surname, photo, warehouse_id, document_type, document_number, birth_date, gender, email, phone, address, hire_date, job_position_id, salary, status
 				FROM employees 
 				WHERE id = $1 AND deleted_at IS NULL
 			`, user.Employee_Id)
@@ -157,7 +157,7 @@ func (r *InventoryMovementRepository) GetInventoryMovementById(id int) (*domain.
 	if user.Employee_Id.Valid {
 		var company domain.Employees
 		err = r.db.Get(&company, `
-			SELECT id, first_name, second_name, third_name, surname, second_surname, photo, warehouse_id, document_type, document_number, birth_date, gender, email, phone, address, hire_date, job_position_id, salary, status
+			SELECT id, names, surname, second_surname, photo, warehouse_id, document_type, document_number, birth_date, gender, email, phone, address, hire_date, job_position_id, salary, status
 			FROM employees 
 			WHERE id = $1 AND deleted_at IS NULL
 		`, user.Employee_Id)

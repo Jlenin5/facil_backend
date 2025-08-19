@@ -23,6 +23,6 @@ type Attendance struct {
 	ApprovedBy            domain.NullInt                   `db:"approved_by" json:"approved_by,omitempty"`
 	ApprovedAt            domain.NullTime                  `db:"approved_at" json:"approved_at,omitempty"`
 	Created_at            time.Time                        `db:"created_at" json:"-"`
-	Updated_at            time.Time                        `db:"updated_at" json:"-"`
+	Updated_at            domain.NullTime                  `db:"updated_at" json:"-"`
 	Deleted_at            domain.NullTime                  `db:"deleted_at" json:"-"`
 }

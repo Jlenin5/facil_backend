@@ -52,9 +52,8 @@ func (r *AbsenceTypeRepository) Create(ctx context.Context, absenceType *humanre
 
 func (r *AbsenceTypeRepository) GetAll(ctx context.Context) ([]humanresources.AbsenceType, error) {
 	query := fmt.Sprintf(`
-		SELECT * FROM %s 
-		WHERE deleted_at IS NULL
-		ORDER BY name ASC`, absenceTypesTable)
+		SELECT id, name, code, description, requires_approval, is_paid, deducts_vacation, status, created_at, updated_at FROM %s 
+		WHERE deleted_at IS NULL`, absenceTypesTable)
 
 	var absenceTypes []humanresources.AbsenceType
 	if err := r.db.SelectContext(ctx, &absenceTypes, query); err != nil {

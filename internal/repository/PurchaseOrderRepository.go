@@ -229,7 +229,7 @@ func (r *PurchaseOrderRepository) fetchPurchaseOrderDetails(purchaseOrder *domai
 	query := `
 		SELECT
 			pod.id, pod.purchase_order_id, pod.product_id, pod.quantity, pod.price, pod.discount, pod.subtotal, pod.total,
-			p.id AS "product.id", p.name AS "product.name", p.price AS "product.price", p.cost AS "product.cost"
+			p.id AS "product.id", p.name AS "product.name", p.featured_pcf AS "product.featured_pcf", p.cost AS "product.cost"
 		FROM purchase_order_details pod
 		LEFT JOIN products p ON pod.product_id=p.id
 		WHERE pod.purchase_order_id = $1

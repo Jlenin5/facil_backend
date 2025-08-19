@@ -15,6 +15,6 @@ type VacationBalance struct {
 	DaysTaken     int                        `db:"days_taken" json:"days_taken"`
 	DaysRemaining int                        `db:"days_remaining" json:"days_remaining"`
 	Created_at    time.Time                  `db:"created_at" json:"-"`
-	Updated_at    time.Time                  `db:"updated_at" json:"-"`
+	Updated_at    domain.NullTime            `db:"updated_at" json:"-"`
 	Deleted_at    domain.NullTime            `db:"deleted_at" json:"-"`
 }

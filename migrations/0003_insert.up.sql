@@ -17,7 +17,7 @@ INSERT INTO currencies (id, name, description, code, symbol) VALUES
 
 -- Insertar datos en la tabla roles
 INSERT INTO roles (id, name, description) VALUES
-(1, 'Admin', 'Administrador del sistema con todos los permisos'),
+(1, 'Administrador', 'Administrador del sistema con todos los permisos'),
 (2, 'Gerente', 'Encargado de la supervisión general de la empresa'),
 (3, 'Jefe de Ventas', 'Responsable del área de ventas'),
 (4, 'Jefe de Almacén', 'Encargado de la gestión de almacenes'),
@@ -41,7 +41,7 @@ INSERT INTO permissions (id, name, description) VALUES
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id
 FROM roles r, permissions p
-WHERE r.name = 'Admin';
+WHERE r.name = 'Administrador';
 
 -- Asignar permisos específicos a otros roles
 INSERT INTO role_permissions (role_id, permission_id)
@@ -3092,14 +3092,14 @@ INSERT INTO performance_reviews (id, employee_id, reviewer_id, review_date, next
 (10, 10, 1, '2023-06-24', '2023-12-24', 4, 'Excelente manejo de proyectos complejos', 'Mejorar estimación de tiempos', 'completed');
 
 -- Insertar incidencias de empleados
-INSERT INTO employee_incidents (id, employee_id, incident_type, incident_date, description, severity, reported_by, status) VALUES
-(1, 3, 'Retraso frecuente', '2023-02-10', '5 retrasos en 2 semanas', 'medium', 1, 'resolved'),
-(2, 5, 'Conflicto interpersonal', '2023-03-15', 'Discusión acalorada con compañero', 'low', 1, 'resolved'),
-(3, 7, 'Error en proceso', '2023-04-05', 'Error en reporte financiero', 'high', 1, 'resolved'),
-(4, 1, 'Uso indebido de recursos', '2023-04-20', 'Uso excesivo de impresora para personal', 'low', 1, 'closed'),
-(5, 9, 'Ausencia no comunicada', '2023-05-02', 'No asistió sin aviso previo', 'medium', 1, 'resolved'),
-(6, 2, 'Violación política', '2023-05-10', 'Compartió credenciales de acceso', 'high', 1, 'investigating'),
-(7, 4, 'Accidente laboral', '2023-06-01', 'Caída en escaleras', 'medium', 1, 'resolved'),
-(8, 6, 'Maltrato a subordinado', '2023-06-15', 'Comentarios inapropiados a practicante', 'high', 1, 'investigating'),
-(9, 10, 'Fuga información', '2023-07-03', 'Envió datos confidenciales a personal externo', 'critical', 1, 'open'),
-(10, 8, 'Conflicto de interés', '2023-07-10', 'Trabajo paralelo con competidor', 'critical', 1, 'investigating');
+INSERT INTO employee_incidents (id, employee_id, incident_type, incident_date, observation, discount, total_to_pay, reported_by, status) VALUES
+(1, 3, 'Retraso frecuente', '2023-02-10', '5 retrasos en 2 semanas', 100, 1400, 1, 'resolved'),
+(2, 5, 'Conflicto interpersonal', '2023-03-15', 'Discusión acalorada con compañero', 100, 1400, 1, 'resolved'),
+(3, 7, 'Error en proceso', '2023-04-05', 'Error en reporte financiero', 100, 1400, 1, 'resolved'),
+(4, 1, 'Uso indebido de recursos', '2023-04-20', 'Uso excesivo de impresora para personal', 100, 1400, 1, 'closed'),
+(5, 9, 'Ausencia no comunicada', '2023-05-02', 'No asistió sin aviso previo', 100, 1400, 1, 'resolved'),
+(6, 2, 'Violación política', '2023-05-10', 'Compartió credenciales de acceso', 100, 1400, 1, 'investigating'),
+(7, 4, 'Accidente laboral', '2023-06-01', 'Caída en escaleras', 100, 1400, 1, 'resolved'),
+(8, 6, 'Maltrato a subordinado', '2023-06-15', 'Comentarios inapropiados a practicante', 100, 1400, 1, 'investigating'),
+(9, 10, 'Fuga información', '2023-07-03', 'Envió datos confidenciales a personal externo', 100, 1400, 1, 'open'),
+(10, 8, 'Conflicto de interés', '2023-07-10', 'Trabajo paralelo con competidor', 100, 1400, 1, 'investigating');

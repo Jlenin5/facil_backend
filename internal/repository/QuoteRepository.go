@@ -103,7 +103,7 @@ func (r *QuoteRepository) GetAllQuotes() ([]domain.Quotes, error) {
 	query := `
 		SELECT
 			q.id, q.reference, q.warehouse_id, q.customer_id, q.currency_id, q.user_id, q.issue_date, q.exchange_rate, q.expiration_date, q.approved_by, q.approved_at, q.canceled_by, q.canceled_at, q.discount, q.subtotal, q.total, q.quote_status, q.migrate_quote,
-			c.id AS "customer.id", c.first_name AS "customer.first_name", c.second_name AS "customer.second_name", c.third_name AS "customer.third_name", c.surname AS "customer.surname", c.second_surname AS "customer.second_surname", c.company_name AS "customer.company_name",
+			c.id AS "customer.id", c.names AS "customer.names", c.surname AS "customer.surname", c.second_surname AS "customer.second_surname", c.company_name AS "customer.company_name",
 			u.id AS "user.id", u.employee_id AS "user.employee_id",
 			cu.id AS "currency.id", cu.name AS "currency.name", cu.code AS "currency.code", cu.symbol AS "currency.symbol",
 			e.id AS "user.employee.id", e.names AS "user.employee.names", e.surname AS "user.employee.surname", e.second_surname AS "user.employee.second_surname",
@@ -134,7 +134,7 @@ func (r *QuoteRepository) GetAllQuotes() ([]domain.Quotes, error) {
 		detailsQuery := `
 			SELECT
 				qd.id, qd.product_name, qd.quote_id, qd.product_id, qd.quantity, qd.price, qd.discount_method, qd.discount, qd.subtotal, qd.total,
-				p.id AS "product.id", p.name AS "product.name", p.price AS "product.price", p.cost AS "product.cost"
+				p.id AS "product.id", p.name AS "product.name", p.featured_pcf AS "product.featured_pcf", p.cost AS "product.cost"
 			FROM quote_details qd
 			LEFT JOIN products p ON qd.product_id=p.id
 			WHERE qd.quote_id = $1
@@ -159,7 +159,7 @@ func (r *QuoteRepository) GetQuoteById(quoteId int) (*domain.Quotes, error) {
 	query := `
 		SELECT
 			q.id, q.reference, q.warehouse_id, q.customer_id, q.currency_id, q.user_id, q.issue_date, q.exchange_rate, q.expiration_date, q.approved_by, q.approved_at, q.canceled_by, q.canceled_at, q.discount, q.subtotal, q.total, q.quote_status, q.migrate_quote,
-			c.id AS "customer.id", c.first_name AS "customer.first_name", c.second_name AS "customer.second_name", c.third_name AS "customer.third_name", c.surname AS "customer.surname", c.second_surname AS "customer.second_surname", c.company_name AS "customer.company_name",
+			c.id AS "customer.id", c.names AS "customer.names", c.surname AS "customer.surname", c.second_surname AS "customer.second_surname", c.company_name AS "customer.company_name",
 			u.id AS "user.id", u.employee_id AS "user.employee_id",
 			cu.id AS "currency.id", cu.name AS "currency.name", cu.code AS "currency.code", cu.symbol AS "currency.symbol",
 			e.id AS "user.employee.id", e.names AS "user.employee.names", e.surname AS "user.employee.surname", e.second_surname AS "user.employee.second_surname",
@@ -185,7 +185,7 @@ func (r *QuoteRepository) GetQuoteById(quoteId int) (*domain.Quotes, error) {
 	detailQuery := `
 		SELECT
 			qd.id, qd.product_name, qd.quote_id, qd.product_id, qd.quantity, qd.price, qd.discount_method, qd.discount, qd.subtotal, qd.total,
-			p.id AS "product.id", p.name AS "product.name", p.price AS "product.price", p.cost AS "product.cost"
+			p.id AS "product.id", p.name AS "product.name", p.featured_pcf AS "product.featured_pcf", p.cost AS "product.cost"
 		FROM quote_details qd
 		LEFT JOIN products p ON qd.product_id=p.id
 		WHERE qd.quote_id = $1 AND qd.deleted_at IS NULL

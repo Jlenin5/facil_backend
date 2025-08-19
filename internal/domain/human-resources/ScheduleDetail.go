@@ -14,6 +14,6 @@ type ScheduleDetail struct {
 	EndTime      string          `db:"end_time" json:"endTime"`
 	IsWorkingDay uint8           `db:"is_working_day" json:"isWorkingDay"`
 	Created_at   time.Time       `db:"created_at" json:"-"`
-	Updated_at   time.Time       `db:"updated_at" json:"-"`
+	Updated_at   domain.NullTime `db:"updated_at" json:"-"`
 	Deleted_at   domain.NullTime `db:"deleted_at" json:"-"`
 }

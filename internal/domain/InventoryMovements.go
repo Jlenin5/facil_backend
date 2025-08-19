@@ -13,7 +13,7 @@ type InventoryMovements struct {
 	Reference     NullString  `db:"reference" json:"reference"`
 	User_Id       int         `db:"user_id" json:"user_id"`
 	User          *Users      `json:"user"`
-	Created_at    time.Time   `db:"created_at" json:"-"`
-	Updated_at    time.Time   `db:"updated_at" json:"-"`
+	Created_at    time.Time   `db:"created_at" json:"created_at"`
+	Updated_at    NullTime    `db:"updated_at" json:"updated_at"`
 	Deleted_at    NullTime    `db:"deleted_at" json:"-"`
 }

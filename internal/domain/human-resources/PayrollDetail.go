@@ -23,6 +23,6 @@ type PayrollDetail struct {
 	Status        string            `db:"status" json:"status"`
 	PaidAt        domain.NullTime   `db:"paid_at" json:"paidAt,omitempty"`
 	Created_at    time.Time         `db:"created_at" json:"-"`
-	Updated_at    time.Time         `db:"updated_at" json:"-"`
+	Updated_at    domain.NullTime   `db:"updated_at" json:"-"`
 	Deleted_at    domain.NullTime   `db:"deleted_at" json:"-"`
 }

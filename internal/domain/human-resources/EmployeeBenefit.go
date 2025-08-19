@@ -17,6 +17,6 @@ type EmployeeBenefit struct {
 	EndDate     domain.NullTime            `db:"end_date" json:"end_date,omitempty"`
 	Status      uint8                      `db:"status" json:"status"`
 	Created_at  time.Time                  `db:"created_at" json:"-"`
-	Updated_at  time.Time                  `db:"updated_at" json:"-"`
+	Updated_at  domain.NullTime            `db:"updated_at" json:"-"`
 	Deleted_at  domain.NullTime            `db:"deleted_at" json:"-"`
 }

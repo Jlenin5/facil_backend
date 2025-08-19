@@ -3,10 +3,11 @@ package repositoryHumanresources
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/Jlenin5/facil_backend/internal/domain"
-	humanresources "github.com/Jlenin5/facil_backend/internal/domain/human-resources"
+	"github.com/Jlenin5/facil_backend/internal/domain/human-resources"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -138,32 +139,24 @@ func (r *EmployeeScheduleRepository) Assign(ctx context.Context, schedule *human
 }
 
 func (r *EmployeeScheduleRepository) GetById(ctx context.Context, id int) (*humanresources.EmployeeSchedule, error) {
+	log.Println(id)
 	query := fmt.Sprintf(`
 		SELECT
-			ei.*,
+			ei.id, ei.employee_id, ei.schedule_id, ei.effective_date, ei.end_date,
 			e.id AS "employee.id",
-			e.names AS "employee.names"
-			e.third_name AS "employee.third_name",
-			e.surname AS "employee.surname",
-			e.second_surname AS "employee.second_surname",
-			e.warehouse_id AS "employee.warehouse_id"
+			e.names AS "employee.names",
+			COALESCE(e.surname, '') AS "employee.surname",
+			COALESCE(e.second_surname, '') AS "employee.second_surname"
 		FROM %s ei
-		JOIN %s e ON ei.employee_id = e.id
-		WHERE ei.id = $1 AND ei.deleted_at IS NULL`, employeeSchedulesTable, employeesTable5)
+		INNER JOIN %s e ON ei.employee_id = e.id
+		WHERE ei.id = $1`, employeeSchedulesTable, employeesTable5)
 
-	var result struct {
-		humanresources.EmployeeSchedule
-		Employee domain.EmployeeReducedData `db:"employee"`
-	}
-
-	if err := r.db.GetContext(ctx, &result, query, id); err != nil {
+	var review humanresources.EmployeeSchedule
+	if err := r.db.GetContext(ctx, &review, query, id); err != nil {
 		return nil, fmt.Errorf("error getting employee schedule by ID: %w", err)
 	}
 
-	schedule := result.EmployeeSchedule
-	schedule.Employee = result.Employee
-
-	return &schedule, nil
+	return &review, nil
 }
 
 func (r *EmployeeScheduleRepository) Update(ctx context.Context, incident *humanresources.EmployeeSchedule) error {

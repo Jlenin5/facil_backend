@@ -29,7 +29,7 @@ type Quotes struct {
 	Migrate_Quote   uint8                 `db:"migrate_quote" json:"migrate_quote"`
 	QuoteDetails    []QuoteDetails        `json:"quote_details"`
 	Created_at      time.Time             `db:"created_at" json:"-"`
-	Updated_at      time.Time             `db:"updated_at" json:"-"`
+	Updated_at      NullTime       `db:"updated_at" json:"-"`
 	Deleted_at      NullTime              `db:"deleted_at" json:"-"`
 }
 
@@ -46,6 +46,6 @@ type QuoteDetails struct {
 	Subtotal        float64             `db:"subtotal" json:"subtotal"`
 	Total           float64             `db:"total" json:"total"`
 	Created_at      time.Time           `db:"created_at" json:"-"`
-	Updated_at      time.Time           `db:"updated_at" json:"-"`
+	Updated_at      NullTime     `db:"updated_at" json:"-"`
 	Deleted_at      NullTime            `db:"deleted_at" json:"-"`
 }

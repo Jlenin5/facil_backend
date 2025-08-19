@@ -4,13 +4,13 @@ import "time"
 
 type Employees struct {
 	Id              int                     `db:"id" json:"id"`
-	Names      string                  `db:"names" json:"names"`
+	Names           string                  `db:"names" json:"names"`
 	Surname         NullString              `db:"surname" json:"surname"`
 	Second_Surname  NullString              `db:"second_surname" json:"second_surname"`
 	Photo           NullString              `db:"photo" json:"photo"`
 	Document_Type   string                  `db:"document_type" json:"document_type"`
 	Document_Number string                  `db:"document_number" json:"document_number"`
-	Birth_Date      string                  `db:"birth_date" json:"birth_date"`
+	Birth_Date      time.Time               `db:"birth_date" json:"birth_date"`
 	Gender          string                  `db:"gender" json:"gender"`
 	Email           NullString              `db:"email" json:"email"`
 	Phone           NullString              `db:"phone" json:"phone"`
@@ -23,7 +23,7 @@ type Employees struct {
 	Salary          float64                 `db:"salary" json:"salary"`
 	Status          uint8                   `db:"status" json:"status"`
 	Created_at      time.Time               `db:"created_at" json:"-"`
-	Updated_at      time.Time               `db:"updated_at" json:"-"`
+	Updated_at      NullTime                `db:"updated_at" json:"-"`
 	Deleted_at      NullTime                `db:"deleted_at" json:"-"`
 }
 

@@ -15,7 +15,7 @@ type AbsenceType struct {
 	IsPaid           uint8             `db:"is_paid" json:"is_paid"`
 	DeductsVacation  uint8             `db:"deducts_vacation" json:"deducts_vacation"`
 	Status           uint8             `db:"status" json:"status"`
-	Created_at       time.Time         `db:"created_at" json:"-"`
-	Updated_at       time.Time         `db:"updated_at" json:"-"`
+	Created_at       time.Time         `db:"created_at" json:"created_at"`
+	Updated_at       domain.NullTime   `db:"updated_at" json:"updated_at"`
 	Deleted_at       domain.NullTime   `db:"deleted_at" json:"-"`
 }

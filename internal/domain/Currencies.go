@@ -11,8 +11,8 @@ type Currencies struct {
 	Code        string     `db:"code" json:"code"`
 	Symbol      string     `db:"symbol" json:"symbol"`
 	Status      uint8      `db:"status" json:"status"`
-	Created_at  time.Time  `db:"created_at" json:"-"`
-	Updated_at  time.Time  `db:"updated_at" json:"-"`
+	Created_at  time.Time  `db:"created_at" json:"created_at"`
+	Updated_at  NullTime   `db:"updated_at" json:"updated_at"`
 	Deleted_at  NullTime   `db:"deleted_at" json:"-"`
 }
 
@@ -26,6 +26,6 @@ type ExchangeRates struct {
 	Created_By         int                  `db:"created_by" json:"created_by"`
 	Updated_By         NullInt              `db:"updated_by" json:"updated_by"`
 	Created_at         time.Time            `db:"created_at" json:"created_at"`
-	Updated_at         time.Time            `db:"updated_at" json:"-"`
+	Updated_at         NullTime             `db:"updated_at" json:"updated_at"`
 	Deleted_at         NullTime             `db:"deleted_at" json:"-"`
 }

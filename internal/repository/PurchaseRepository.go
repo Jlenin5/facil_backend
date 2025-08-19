@@ -280,7 +280,7 @@ func (r *PurchaseRepository) fetchPurchaseDetails(purchase *domain.Purchases) er
 	query := `
 		SELECT
 			pd.id, pd.purchase_id, pd.product_id, pd.quantity, pd.price, pd.discount, pd.subtotal, pd.total,
-			p.id AS "product.id", p.name AS "product.name", p.price AS "product.price", p.cost AS "product.cost"
+			p.id AS "product.id", p.name AS "product.name", p.featured_pcf AS "product.featured_pcf", p.cost AS "product.cost"
 		FROM purchase_details pd
 		LEFT JOIN products p ON pd.product_id=p.id
 		WHERE pd.purchase_id = $1

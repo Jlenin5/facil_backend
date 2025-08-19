@@ -37,7 +37,7 @@ func (r *SupplierRepository) CreateSupplier(supplier *domain.Suppliers) error {
 // Obtener todos los proveedores
 func (r *SupplierRepository) GetAllSuppliers() ([]domain.Suppliers, error) {
 	var suppliers []domain.Suppliers
-	query := "SELECT id, name, ruc, email, phone, web_site, address, status FROM suppliers WHERE deleted_at IS NULL"
+	query := "SELECT id, name, ruc, email, phone, web_site, address, status FROM suppliers WHERE deleted_at IS NULL ORDER BY id DESC"
 	err := r.db.Select(&suppliers, query)
 	if err != nil {
 		fmt.Printf("Error ejecutando la consulta: %v\n", err)

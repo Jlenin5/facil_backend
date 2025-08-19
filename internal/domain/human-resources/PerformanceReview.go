@@ -20,6 +20,6 @@ type PerformanceReview struct {
 	Status              string                     `db:"status" json:"status"`
 	AcknowledgedAt      domain.NullTime            `db:"acknowledged_at" json:"acknowledged_at,omitempty"`
 	Created_at          time.Time                  `db:"created_at" json:"-"`
-	Updated_at          domain.NullTime                   `db:"updated_at" json:"-"`
+	Updated_at          domain.NullTime            `db:"updated_at" json:"-"`
 	Deleted_at          domain.NullTime            `db:"deleted_at" json:"-"`
 }

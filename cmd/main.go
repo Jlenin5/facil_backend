@@ -20,13 +20,13 @@ func main() {
 
 	// Repositorios
 	authRepo := repository.NewAuthRepository(db)
-	subscriptionRepo := repository.NewSubscriptionRepository(db)
-	userRepo := repository.NewUserRepository(db)
+	// subscriptionRepo := repository.NewSubscriptionRepository(db)
+	// userRepo := repository.NewUserRepository(db)
 	
 	// UseCases
 	authUC := usecase.NewAuthUseCase(authRepo, jwtKey)
-	subscriptionUC := usecase.NewSubscriptionUseCase(subscriptionRepo)
-	userUC := usecase.NewUserUseCase(userRepo)
+	// subscriptionUC := usecase.NewSubscriptionUseCase(subscriptionRepo)
+	// userUC := usecase.NewUserUseCase(userRepo)
 
 	// Crear routers
 	publicRouter := mux.NewRouter()
@@ -40,7 +40,7 @@ func main() {
 
 	// Middleware para rutas protegidas
 	protectedRouter.Use(middleware.JWTAuthMiddleware(jwtKey))
-	protectedRouter.Use(middleware.NewSubscriptionMiddleware(subscriptionUC, userUC).ValidateSubscription)
+	// protectedRouter.Use(middleware.NewSubscriptionMiddleware(subscriptionUC, userUC).ValidateSubscription)
 	routes.SetupProtectedRoutes(protectedRouter, db)
 
 	// Configurar CORS

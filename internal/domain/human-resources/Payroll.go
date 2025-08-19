@@ -18,6 +18,6 @@ type Payroll struct {
 	ApprovedBy  domain.NullInt    `db:"approved_by" json:"approvedBy,omitempty"`
 	ApprovedAt  domain.NullTime   `db:"approved_at" json:"approvedAt,omitempty"`
 	Created_at  time.Time         `db:"created_at" json:"-"`
-	Updated_at  time.Time         `db:"updated_at" json:"-"`
+	Updated_at  domain.NullTime   `db:"updated_at" json:"-"`
 	Deleted_at  domain.NullTime   `db:"deleted_at" json:"-"`
 }

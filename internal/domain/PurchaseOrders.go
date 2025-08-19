@@ -27,8 +27,8 @@ type PurchaseOrders struct {
 	Migrate_Purchase     uint8                  `db:"migrate_purchase" json:"migrate_purchase"`
 	PurchaseOrderDetails []PurchaseOrderDetails `json:"purchase_order_details"`
 	Notes                NullString             `db:"notes" json:"notes"`
-	Created_at           time.Time              `db:"created_at" json:"-"`
-	Updated_at           time.Time              `db:"updated_at" json:"-"`
+	Created_at           time.Time              `db:"created_at" json:"created_at"`
+	Updated_at           NullTime               `db:"updated_at" json:"updated_at"`
 	Deleted_at           NullTime               `db:"deleted_at" json:"-"`
 }
 

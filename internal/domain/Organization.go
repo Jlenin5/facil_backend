@@ -16,7 +16,7 @@ type Companies struct {
 	Status     uint8            `db:"status" json:"status"`
 	Plan       *PlanReducedData `json:"plan"`
 	Created_at time.Time        `db:"created_at" json:"-"`
-	Updated_at time.Time        `db:"updated_at" json:"-"`
+	Updated_at NullTime         `db:"updated_at" json:"-"`
 	Deleted_at NullTime         `db:"deleted_at" json:"-"`
 }
 
@@ -30,7 +30,7 @@ type BranchOffices struct {
 	Phone       NullString `db:"phone" json:"phone"`
 	Status      uint8      `db:"status" json:"status"`
 	Created_at  time.Time  `db:"created_at" json:"-"`
-	Updated_at  time.Time  `db:"updated_at" json:"-"`
+	Updated_at  NullTime   `db:"updated_at" json:"-"`
 	Deleted_at  NullTime   `db:"deleted_at" json:"-"`
 }
 
@@ -45,6 +45,6 @@ type Warehouses struct {
 	Phone            NullString     `db:"phone" json:"phone"`
 	Status           uint8          `db:"status" json:"status"`
 	Created_at       time.Time      `db:"created_at" json:"-"`
-	Updated_at       time.Time      `db:"updated_at" json:"-"`
+	Updated_at       NullTime       `db:"updated_at" json:"-"`
 	Deleted_at       NullTime       `db:"deleted_at" json:"-"`
 }

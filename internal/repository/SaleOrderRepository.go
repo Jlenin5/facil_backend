@@ -100,7 +100,7 @@ func (r *SaleOrderRepository) GetAllSaleOrders() ([]domain.SaleOrders, error) {
 	query := `
 		SELECT
 			so.id, so.reference, so.warehouse_id, so.customer_id, so.currency_id, so.user_id, so.issue_date, so.exchange_rate, so.discount, so.subtotal, so.total, so.order_status, so.date_approved, so.migrate_sale_order, so.quote_id,
-			c.id AS "customer.id", c.first_name AS "customer.first_name", c.second_name AS "customer.second_name", c.third_name AS "customer.third_name", c.surname AS "customer.surname", c.second_surname AS "customer.second_surname", c.company_name AS "customer.company_name",
+			c.id AS "customer.id", c.names AS "customer.names", c.surname AS "customer.surname", c.second_surname AS "customer.second_surname", c.company_name AS "customer.company_name",
 			u.id AS "user.id", u.employee_id AS "user.employee_id",
 			cu.id AS "currency.id", cu.name AS "currency.name", cu.code AS "currency.code", cu.symbol AS "currency.symbol",
 			e.id AS "user.employee.id", e.names AS "user.employee.names", e.surname AS "user.employee.surname", e.second_surname AS "user.employee.second_surname",
@@ -133,7 +133,7 @@ func (r *SaleOrderRepository) GetAllSaleOrders() ([]domain.SaleOrders, error) {
 		detailsQuery := `
 			SELECT
 				sod.id, sod.product_name, sod.sale_order_id, sod.product_id, sod.quantity, sod.price, sod.discount_method, sod.discount, sod.subtotal, sod.total,
-				p.id AS "product.id", p.name AS "product.name", p.price AS "product.price", p.cost AS "product.cost"
+				p.id AS "product.id", p.name AS "product.name", p.featured_pcf AS "product.featured_pcf", p.cost AS "product.cost"
 			FROM sale_order_details sod
 			LEFT JOIN products p ON sod.product_id=p.id
 			WHERE sod.sale_order_id = $1
@@ -158,7 +158,7 @@ func (r *SaleOrderRepository) GetSaleOrderById(orderId int) (*domain.SaleOrders,
 	query := `
 		SELECT
 			so.id, so.reference, so.warehouse_id, so.customer_id, so.currency_id, so.user_id, so.issue_date, so.exchange_rate, so.discount, so.subtotal, so.total, so.order_status, so.date_approved, so.migrate_sale_order, so.quote_id,
-			c.id AS "customer.id", c.first_name AS "customer.first_name", c.second_name AS "customer.second_name", c.third_name AS "customer.third_name", c.surname AS "customer.surname", c.second_surname AS "customer.second_surname", c.company_name AS "customer.company_name",
+			c.id AS "customer.id", COALESCE(c.names, '') AS "customer.names", COALESCE(c.surname, '') AS "customer.surname", COALESCE(c.second_surname, '') AS "customer.second_surname", c.company_name AS "customer.company_name",
 			u.id AS "user.id", u.employee_id AS "user.employee_id",
 			cu.id AS "currency.id", cu.name AS "currency.name", cu.code AS "currency.code", cu.symbol AS "currency.symbol",
 			e.id AS "user.employee.id", e.names AS "user.employee.names", e.surname AS "user.employee.surname", e.second_surname AS "user.employee.second_surname",
@@ -187,7 +187,7 @@ func (r *SaleOrderRepository) GetSaleOrderById(orderId int) (*domain.SaleOrders,
 	detailQuery := `
 		SELECT
 				sod.id, sod.product_name, sod.sale_order_id, sod.product_id, sod.quantity, sod.price, sod.discount_method, sod.discount, sod.subtotal, sod.total,
-				p.id AS "product.id", p.name AS "product.name", p.price AS "product.price", p.cost AS "product.cost"
+				p.id AS "product.id", p.name AS "product.name", p.featured_pcf AS "product.featured_pcf", p.cost AS "product.cost"
 			FROM sale_order_details sod
 			LEFT JOIN products p ON sod.product_id=p.id
 			WHERE sod.sale_order_id = $1 AND sod.deleted_at IS NULL

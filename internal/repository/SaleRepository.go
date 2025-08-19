@@ -304,7 +304,7 @@ func (r *SaleRepository) fetchSaleDetails(sale *domain.Sales) error {
 	query := `
 		SELECT
 			sd.id, sd.product_name, sd.sale_id, sd.product_id, sd.quantity, sd.price, sd.discount_method, sd.discount, sd.subtotal, sd.total,
-			p.id AS "product.id", p.name AS "product.name", p.price AS "product.price", p.cost AS "product.cost"
+			p.id AS "product.id", p.name AS "product.name", p.featured_pcf AS "product.featured_pcf", p.cost AS "product.cost"
 		FROM sale_details sd
 		LEFT JOIN products p ON sd.product_id=p.id
 		WHERE sd.sale_id = $1
@@ -323,7 +323,7 @@ func querySelectSale(whereClause string) string {
 	query := fmt.Sprintf(`
 		SELECT
 			s.id, s.document_type, s.series, s.number, s.bill, s.warehouse_id, s.customer_id, s.currency_id, s.user_id, s.issue_date, s.exchange_rate, s.discount, s.subtotal, s.total, s.total_paid, s.change, s.sale_status, s.payment_method_id, s.sale_order_id, s.tax_identification, s.retention, s.perception,
-			c.id AS "customer.id", c.first_name AS "customer.first_name", c.second_name AS "customer.second_name", c.third_name AS "customer.third_name", c.surname AS "customer.surname", c.second_surname AS "customer.second_surname", c.company_name AS "customer.company_name", c.document_number AS "customer.document_number", COALESCE(c.phone, '') AS "customer.phone", COALESCE(c.address, '') AS "customer.address",
+			c.id AS "customer.id", c.names AS "customer.names", c.surname AS "customer.surname", c.second_surname AS "customer.second_surname", c.company_name AS "customer.company_name", c.document_number AS "customer.document_number", COALESCE(c.phone, '') AS "customer.phone", COALESCE(c.address, '') AS "customer.address",
 			u.id AS "user.id", u.employee_id AS "user.employee_id",
 			cu.id AS "currency.id", cu.name AS "currency.name", cu.code AS "currency.code", cu.symbol AS "currency.symbol",
 			e.id AS "user.employee.id", e.names AS "user.employee.names", e.surname AS "user.employee.surname", e.second_surname AS "user.employee.second_surname",

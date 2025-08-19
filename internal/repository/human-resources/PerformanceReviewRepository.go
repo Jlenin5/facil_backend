@@ -84,15 +84,11 @@ func (r *PerformanceReviewRepository) GetById(ctx context.Context, id int) (*hum
 			pr.acknowledged_at, pr.created_at, pr.updated_at,
 			e.id AS "employee.id", 
 			e.names AS "employee.names", 
-			e.surname AS "employee.surname",
-			r.id AS "reviewer.id",
-			r.names AS "reviewer.names",
-			r.surname AS "reviewer.surname"
+			e.surname AS "employee.surname"
 		FROM %s pr
 		INNER JOIN %s e ON pr.employee_id = e.id
-		LEFT JOIN %s r ON pr.reviewer_id = r.id
 		WHERE pr.id = $1 AND pr.deleted_at IS NULL`, 
-		performanceReviewsTable, employeesTable7, employeesTable7)
+		performanceReviewsTable, employeesTable7)
 
 	var review humanresources.PerformanceReview
 	if err := r.db.GetContext(ctx, &review, query, id); err != nil {

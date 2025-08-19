@@ -101,6 +101,7 @@ type Booking struct {
 	Warehouse_Id NullInt `json:"warehouse_id"`
 	Total        float64 `json:"total"`
 }
+
 type PriceProducts struct {
 	Id    int     `json:"id"`
 	Name  string  `json:"name"`

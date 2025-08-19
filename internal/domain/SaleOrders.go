@@ -10,7 +10,7 @@ type SaleOrders struct {
 	Warehouse_Id       int                   `db:"warehouse_id" json:"warehouse_id"`
 	Warehouse          *WarehouseReducedData `json:"warehouse"`
 	Customer_Id        int                   `db:"customer_id" json:"customer_id"`
-	Customer           *CustomerReducedData  `json:"customer"`
+	Customer           *CustomerReducedData  `db:"customer" json:"customer"`
 	Currency_Id        int                   `db:"currency_id" json:"currency_id"`
 	Currency           *CurrencyReducedData  `json:"currency"`
 	User_Id            int                   `db:"user_id" json:"user_id"`
@@ -44,6 +44,6 @@ type SaleOrderDetails struct {
 	Subtotal        float64             `db:"subtotal" json:"subtotal"`
 	Total           float64             `db:"total" json:"total"`
 	Created_at      time.Time           `db:"created_at" json:"-"`
-	Updated_at      time.Time           `db:"updated_at" json:"-"`
+	Updated_at      NullTime     `db:"updated_at" json:"-"`
 	Deleted_at      NullTime            `db:"deleted_at" json:"-"`
 }

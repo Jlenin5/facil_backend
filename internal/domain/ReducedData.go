@@ -2,9 +2,7 @@ package domain
 
 type EmployeeReducedData struct {
 	Id             int        `json:"id"`
-	First_Name     string     `json:"first_name"`
-	Second_Name    NullString `json:"second_name"`
-	Third_Name     NullString `json:"third_name"`
+	Names          NullString `json:"names"`
 	Surname        NullString `json:"surname"`
 	Second_Surname NullString `json:"second_surname"`
 	Warehouse_Id   int        `json:"warehouse_id"`
@@ -18,9 +16,7 @@ type UserReducedData struct {
 
 type CustomerReducedData struct {
 	Id              int        `json:"id"`
-	First_Name      NullString `json:"first_name"`
-	Second_Name     NullString `json:"second_name"`
-	Third_Name      NullString `json:"third_name"`
+	Names           NullString `json:"names"`
 	Surname         NullString `json:"surname"`
 	Second_Surname  NullString `json:"second_surname"`
 	Company_Name    NullString `json:"company_name"`
@@ -60,10 +56,10 @@ type WarehouseReducedData struct {
 }
 
 type ProductReducedData struct {
-	Id    int     `json:"id"`
-	Name  string  `json:"name"`
-	Price float64 `json:"price"`
-	Cost  float64 `json:"cost"`
+	Id           int       `json:"id"`
+	Name         string    `json:"name"`
+	Featured_pcf NullFloat `json:"featured_pcf"`
+	Cost         float64   `json:"cost"`
 }
 
 type BrandReducedData struct {

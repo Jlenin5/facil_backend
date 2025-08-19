@@ -214,13 +214,13 @@ func (h *SaleHandler) OpenPDF(w http.ResponseWriter, r *http.Request) {
 	// Almacén
 	centerText(7, "ArialUnicode", "", sale.Warehouse.Name, 12)
 	// Usuario
-	centerText(7, "ArialUnicode", "", sale.User.Employee.First_Name+" "+*sale.User.Employee.Second_Name.String+" "+*sale.User.Employee.Surname.String+" "+*sale.User.Employee.Second_Surname.String, 12)
+	centerText(7, "ArialUnicode", "", *sale.User.Employee.Names.String+" "+*sale.User.Employee.Surname.String+" "+*sale.User.Employee.Second_Surname.String, 12)
 	// Documento
 	centerText(7, "ArialUnicode", "B", *sale.Bill.String, 14)
 	// hr
 	centerText(7, "Arial", "", "----------------------------------------------------", 10)
 	// Cliente
-	centerText(7, "ArialUnicode", "", "Cliente: "+*sale.Customer.First_Name.String+" "+*sale.Customer.Surname.String, 12)
+	centerText(7, "ArialUnicode", "", "Cliente: "+*sale.Customer.Names.String+" "+*sale.Customer.Surname.String, 12)
 	// Documento
 	centerText(7, "ArialUnicode", "", "Documento: "+sale.Customer.Document_Number, 12)
 	// Phone
@@ -344,7 +344,7 @@ func (h *SaleHandler) OpenPDFA4(w http.ResponseWriter, r *http.Request) {
 	pdf.Cell(0, 6, "Fecha: "+sale.Issue_Date.Format("2006/01/02"))
 	pdf.Ln(5)
 	pdf.SetX(150)
-	pdf.Cell(0, 6, "Usuario: "+sale.User.Employee.First_Name+" "+*sale.User.Employee.Surname.String)
+	pdf.Cell(0, 6, "Usuario: "+*sale.User.Employee.Names.String+" "+*sale.User.Employee.Surname.String)
 	pdf.Ln(15)
 
 	// Cliente
@@ -353,7 +353,7 @@ func (h *SaleHandler) OpenPDFA4(w http.ResponseWriter, r *http.Request) {
 	pdf.Cell(0, 8, "Cliente")
 	pdf.Ln(8)
 	pdf.SetFont("ArialUnicode", "", 10)
-	fullName := *sale.Customer.First_Name.String + " " + *sale.Customer.Surname.String
+	fullName := *sale.Customer.Names.String + " " + *sale.Customer.Surname.String
 	pdf.Cell(0, 6, fullName)
 	pdf.Ln(5)
 	pdf.Cell(0, 6, *sale.Customer.Address.String)
@@ -510,11 +510,8 @@ func (h *SaleHandler) ExportExcel(w http.ResponseWriter, r *http.Request) {
 		row := sheet.AddRow()
 		
 		var customerNameParts []string
-		if sale.Customer.First_Name.Valid {
-			customerNameParts = append(customerNameParts, *sale.Customer.First_Name.String)
-		}
-		if sale.Customer.Second_Name.Valid {
-			customerNameParts = append(customerNameParts, *sale.Customer.Second_Name.String)
+		if sale.Customer.Names.Valid {
+			customerNameParts = append(customerNameParts, *sale.Customer.Names.String)
 		}
 		if sale.Customer.Surname.Valid {
 			customerNameParts = append(customerNameParts, *sale.Customer.Surname.String)
@@ -528,10 +525,7 @@ func (h *SaleHandler) ExportExcel(w http.ResponseWriter, r *http.Request) {
 		customerName := strings.Join(customerNameParts, " ")
 
 		var employeeNameParts []string
-		employeeNameParts = append(employeeNameParts, sale.User.Employee.First_Name)
-		if sale.User.Employee.Second_Name.Valid {
-			employeeNameParts = append(employeeNameParts, *sale.User.Employee.Second_Name.String)
-		}
+		employeeNameParts = append(employeeNameParts, *sale.User.Employee.Names.String)
 		if sale.User.Employee.Surname.Valid {
 			employeeNameParts = append(employeeNameParts, *sale.User.Employee.Surname.String)
 		}
